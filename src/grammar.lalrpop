@@ -1,0 +1,79 @@
+use std::str::FromStr;
+
+use ast::{Value, BinOp, Expr, Statement};
+
+grammar;
+
+// Macros -----------------------------------------------------------------------------------------
+
+BinExp<Op, NextLevel>: Expr = {
+    <b:BinExp<Op, NextLevel>> <o:Op> <n:NextLevel> =>
+        Expr::BinExp(Box::new(b), o, Box::new(n)),
+    NextLevel,
+};
+
+// Statements -------------------------------------------------------------------------------------
+
+pub Stmt: Statement = {
+    <Ident> "=" <Exp> ";" => Statement::Assign(<>),
+    "let" <Ident> "=" <Exp> ";" => Statement::Let(<>),
+    "print" <Exp> ";" => Statement::Print(<>),
+};
+
+// Expressions ------------------------------------------------------------------------------------
+
+Exp: Expr = OrExp;
+
+OrExp = BinExp<OrOp, AndExp>;
+OrOp: BinOp = "||" => BinOp::Or;
+
+AndExp = BinExp<AndOp, EqExp>;
+AndOp: BinOp = "&&" => BinOp::And;
+
+EqExp = BinExp<EqOp, InEqExp>;
+EqOp: BinOp = {
+    "==" => BinOp::Equal,
+    "!=" => BinOp::NotEqual,
+};
+
+InEqExp = BinExp<InEqOp, AddExp>;
+InEqOp: BinOp = {
+    ">=" => BinOp::GreaterOrEqual,
+    ">" => BinOp::GreaterThan,
+    "<=" => BinOp::LessOrEqual,
+    "<" => BinOp::LessThan,
+};
+
+AddExp = BinExp<AddOp, MulExp>;
+AddOp: BinOp = {
+    "+" => BinOp::Plus,
+    "-" => BinOp::Minus,
+};
+
+MulExp = BinExp<MulOp, NotExp>;
+MulOp: BinOp = {
+    "*" => BinOp::Times,
+    "/" => BinOp::Divide,
+    "%" => BinOp::Mod,
+};
+
+NotExp: Expr = {
+    "!" <NotExp> => Expr::Not(Box::new(<>)),
+    Term,
+};
+
+Term: Expr = {
+    Ident => Expr::Var(<>),
+    Value => Expr::Value(<>),
+    "(" <Exp> ")",
+};
+
+
+Value: Value = {
+    "true" => Value::Bool(true),
+    "false" => Value::Bool(false),
+    Int => Value::Int(<>),
+};
+
+Int: i64 = r"-?\d+" => i64::from_str(<>).unwrap();
+Ident: String = r"[$A-Za-z_][$0-9A-Za-z_]*" => String::from(<>);

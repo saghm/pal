@@ -1,12 +1,16 @@
 extern crate rl_sys;
+extern crate lalrpop_util;
+extern crate unicode_xid;
 
 mod ast;
 mod error;
 mod eval;
 mod grammar;
+mod parser;
+mod token;
 mod state;
 
-use grammar::parse_Stmt;
+use parser::parse_stmt;
 use state::State;
 
 use rl_sys::readline;
@@ -25,7 +29,7 @@ fn main() {
             continue;
         }
 
-        match parse_Stmt(&input) {
+        match parse_stmt(&input) {
             Ok(stmt) => match stmt.eval(&mut state) {
                 Ok(_) => (),
                 Err(e) => println!("{}", e),

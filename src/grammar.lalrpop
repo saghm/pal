@@ -1,8 +1,9 @@
 use std::str::FromStr;
 
 use ast::{Value, BinOp, Expr, Statement};
+use token::{self, Token};
 
-grammar;
+grammar<'input>(text: &'input str);
 
 // Macros -----------------------------------------------------------------------------------------
 
@@ -32,15 +33,15 @@ AndOp: BinOp = "&&" => BinOp::And;
 
 EqExp = BinExp<EqOp, InEqExp>;
 EqOp: BinOp = {
-    "==" => BinOp::Equal,
-    "!=" => BinOp::NotEqual,
+    "=" "=" => BinOp::Equal,
+    "!" "=" => BinOp::NotEqual,
 };
 
 InEqExp = BinExp<InEqOp, AddExp>;
 InEqOp: BinOp = {
-    ">=" => BinOp::GreaterOrEqual,
+    ">" "=" => BinOp::GreaterOrEqual,
     ">" => BinOp::GreaterThan,
-    "<=" => BinOp::LessOrEqual,
+    "<" "=" => BinOp::LessOrEqual,
     "<" => BinOp::LessThan,
 };
 
@@ -75,5 +76,33 @@ Value: Value = {
     Int => Value::Int(<>),
 };
 
-Int: i64 = r"-?\d+" => i64::from_str(<>).unwrap();
-Ident: String = r"[A-Za-z_][0-9A-Za-z_]*" => String::from(<>);
+Int: i64 = "I64" => i64::from_str(<>).unwrap();
+Ident: String = "Ident" => String::from(<>);
+
+extern {
+    type Location = usize;
+    type Error = token::Error;
+
+    enum Token<'input> {
+        "true" => Token::True,
+        "false" => Token::False,
+        "I64" => Token::I64(<&'input str>),
+        "Ident" => Token::Ident(<&'input str>),
+        "let" => Token::Let,
+        "print" => Token::Print,
+        "!" => Token::Bang,
+        "&&" => Token::DoubleAmp,
+        "||" => Token::DoubleBars,
+        "=" => Token::Equal,
+        ">" => Token::GreaterThan,
+        "<" => Token::LessThan,
+        "-" => Token::Minus,
+        "%" => Token::Percent,
+        "+" => Token::Plus,
+        "/" => Token::Slash,
+        "*" => Token::Star,
+        ";" => Token::Semicolon,
+        "(" => Token::LeftParen,
+        ")" => Token::RightParen,
+    }
+}

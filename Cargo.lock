@@ -5,6 +5,7 @@ dependencies = [
  "lalrpop 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-util 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rl-sys 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "unicode-xid 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -255,6 +256,11 @@ dependencies = [
 [[package]]
 name = "unicode-xid"
 version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "unicode-xid"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]

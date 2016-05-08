@@ -11,3 +11,4 @@ lalrpop = "0.11"
 [dependencies]
 lalrpop-util = "0.11"
 rl-sys = "0.4"
+unicode-xid = "0.0.3"

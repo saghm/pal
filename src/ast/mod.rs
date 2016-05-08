@@ -1,3 +1,5 @@
+mod test;
+
 use std::fmt;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -54,8 +56,8 @@ impl BinOp {
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 enum Precedence {
     // Ordered correctly for derivation to be sound
-    And,
     Or,
+    And,
     Equality,
     Inequality,
     Addition,

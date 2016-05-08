@@ -76,4 +76,4 @@ Value: Value = {
 };
 
 Int: i64 = r"-?\d+" => i64::from_str(<>).unwrap();
-Ident: String = r"[$A-Za-z_][$0-9A-Za-z_]*" => String::from(<>);
+Ident: String = r"[A-Za-z_][0-9A-Za-z_]*" => String::from(<>);

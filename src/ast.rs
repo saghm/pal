@@ -37,6 +37,32 @@ pub enum BinOp {
     Modulus,
 }
 
+impl BinOp {
+    fn precedence(&self) -> Precedence {
+        match *self {
+            BinOp::And => Precedence::And,
+            BinOp::Or => Precedence::Or,
+            BinOp::Equal | BinOp::NotEqual => Precedence::Equality,
+            BinOp::GreaterOrEqual | BinOp::GreaterThan | BinOp::LessOrEqual | BinOp::LessThan =>
+                Precedence::Inequality,
+            BinOp::Plus | BinOp::Minus => Precedence::Addition,
+            BinOp::Times | BinOp::Divide | BinOp::Modulus => Precedence::Multiplication,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+enum Precedence {
+    // Ordered correctly for derivation to be sound
+    And,
+    Or,
+    Equality,
+    Inequality,
+    Addition,
+    Multiplication,
+    Constant,
+}
+
 impl fmt::Display for BinOp {
     fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -66,11 +92,35 @@ pub enum Expr {
     Var(String),
 }
 
+impl Expr {
+    fn precedence(&self) -> Precedence {
+        match *self {
+            Expr::BinExp(_, ref o, _) => o.precedence(),
+            _ => Precedence::Constant,
+        }
+    }
+}
+
 impl fmt::Display for Expr {
     fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            // TODO: Print with correct grouping
-            Expr::BinExp(ref e1, ref o, ref e2) => write!(fmt, "{} {} {}", e1, o, e2),
+            Expr::BinExp(ref e1, ref o, ref e2) => {
+                let po = o.precedence();
+
+                if e1.precedence() < po {
+                    try!(write!(fmt, "({})", e1));
+                } else {
+                    try!(write!(fmt, "{}", e1));
+                }
+
+                try!(write!(fmt, " {} ", o));
+
+                if e2.precedence() <= po {
+                    write!(fmt, "({})", e2)
+                } else {
+                    write!(fmt, "{}", e2)
+                }
+            }
             Expr::Not(ref e1) => write!(fmt, "!{}", e1),
             Expr::Value(ref v) => write!(fmt, "{}", v),
             Expr::Var(ref s) => write!(fmt, "{}", s),

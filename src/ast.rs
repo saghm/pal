@@ -34,7 +34,7 @@ pub enum BinOp {
     Minus,
     Times,
     Divide,
-    Mod,
+    Modulus,
 }
 
 impl fmt::Display for BinOp {
@@ -52,7 +52,7 @@ impl fmt::Display for BinOp {
             BinOp::Minus => write!(fmt, "-"),
             BinOp::Times => write!(fmt, "*"),
             BinOp::Divide => write!(fmt, "/"),
-            BinOp::Mod => write!(fmt, "%"),
+            BinOp::Modulus => write!(fmt, "%"),
         }
     }
 }

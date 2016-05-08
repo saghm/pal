@@ -55,7 +55,7 @@ MulExp = BinExp<MulOp, NotExp>;
 MulOp: BinOp = {
     "*" => BinOp::Times,
     "/" => BinOp::Divide,
-    "%" => BinOp::Mod,
+    "%" => BinOp::Modulus,
 };
 
 NotExp: Expr = {

@@ -51,7 +51,7 @@ impl Expr {
                     BinOp::Minus => arith_exp(self, v1, v2, |x, y| x - y),
                     BinOp::Times => arith_exp(self, v1, v2, |x, y| x * y),
                     BinOp::Divide => arith_exp(self, v1, v2, |x, y| x / y),
-                    BinOp::Mod => arith_exp(self, v1, v2, |x, y| x % y),
+                    BinOp::Modulus => arith_exp(self, v1, v2, |x, y| x % y),
                 }
             }
             Expr::Not(ref e) => {

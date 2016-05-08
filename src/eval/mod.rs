@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod test;
+
 mod bin_exp;
 
 use ast::{BinOp, Expr, Statement, Value};

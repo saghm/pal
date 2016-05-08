@@ -2,6 +2,9 @@ extern crate rl_sys;
 extern crate lalrpop_util;
 extern crate unicode_xid;
 
+#[macro_use]
+mod macros;
+
 mod ast;
 mod error;
 mod eval;

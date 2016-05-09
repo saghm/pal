@@ -22,12 +22,7 @@ use rl_sys::history::listmgmt;
 fn main() {
     let mut state = State::new();
 
-    loop {
-        let input = match readline::readline(">> ").unwrap() {
-            Some(s) => s,
-            None => break,
-        };
-
+     while let Some(input) = readline::readline(">> ").unwrap() {
         if input.is_empty() {
             continue;
         }

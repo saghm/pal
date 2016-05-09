@@ -81,7 +81,7 @@ impl Expr {
             Expr::Value(ref v) => Ok(v.clone()),
             Expr::Var(ref var) => {
                 match state.get(var) {
-                    Some(ref v) => Ok(v.clone().to_owned()),
+                    Some(v) => Ok(v.clone()),
                     None => Err(Error::undef_var_error(
                         &format!("The variable `{}` is not defined, so it can't be used in an expression", var)))
                 }

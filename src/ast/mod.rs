@@ -3,7 +3,7 @@ mod test;
 
 use std::fmt;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Value {
     Bool(bool),
     Int(i64),

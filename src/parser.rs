@@ -6,7 +6,7 @@ use token::{Error, Token, Tokenizer};
 
 pub type ParseError<'input> = lalrpop_util::ParseError<usize, Token<'input>, Error>;
 
-pub fn parse_stmt<'input>(input: &'input str) -> Result<Statement, ParseError<'input>> {
+pub fn parse_stmt(input: &str) -> Result<Statement, ParseError> {
     let tokenizer = Tokenizer::new(input, 0);
     parse_Stmt(input, tokenizer)
 }

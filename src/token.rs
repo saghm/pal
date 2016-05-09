@@ -31,6 +31,7 @@ pub enum Token<'input> {
     Print,
     If,
     Else,
+    While,
 
     // Operators
     Bang,
@@ -211,6 +212,7 @@ impl <'input> Tokenizer<'input> {
             "false" => (start, False, end),
             "if" => (start, If, end),
             "else" => (start, Else, end),
+            "while" => (start, While, end),
             _ => (start, Ident(word), end),
         }
     }

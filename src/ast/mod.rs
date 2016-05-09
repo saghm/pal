@@ -137,6 +137,7 @@ pub enum Statement {
     If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
     Print(Expr),
+    While(Expr, Vec<Statement>),
 }
 
 impl Statement {
@@ -162,6 +163,15 @@ impl Statement {
                 try!(writeln!(fmt, "}} else {{"));
 
                 for stmt in v2.iter() {
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 4));
+                }
+
+                writeln!(fmt, "}}")
+            }
+            Statement::While(ref e, ref v) => {
+                try!(writeln!(fmt, "while ({}) {{", e));
+
+                for stmt in v.iter() {
                     try!(stmt.fmt_with_indent(fmt, indent_level + 4));
                 }
 

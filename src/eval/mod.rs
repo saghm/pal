@@ -44,6 +44,20 @@ impl Statement {
                 println!("{}", try!(e.eval(state)));
                 Ok(())
             }
+            Statement::While(ref exp, ref block) => {
+                match try!(exp.eval(state)) {
+                    Value::Bool(true) => (),
+                    Value::Bool(false) => return Ok(()),
+                    Value::Int(_) => return Err(Error::type_error(
+                        &format!("`{}` is an int, so `while ({}) ...` is invalid", exp, exp))),
+                };
+
+                for stmt in block.iter() {
+                    try!(stmt.eval(state));
+                }
+
+                self.eval(state)
+            }
         }
     }
 }

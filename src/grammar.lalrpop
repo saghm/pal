@@ -25,6 +25,7 @@ SingleStmt: Statement = {
     "let" <Ident> "=" <Exp> ";" => Statement::Let(<>),
     "print" <Exp> ";" => Statement::Print(<>),
     "if" <c:Clause> <b1:Block> "else" <b2:Block> => Statement::If(c, b1, b2),
+    "while" <c:Clause> <b:Block> => Statement::While(c, b),
 };
 
 If: Statement = {
@@ -106,6 +107,7 @@ extern {
         "print" => Token::Print,
         "if" => Token::If,
         "else" => Token::Else,
+        "while" => Token::While,
         "!" => Token::Bang,
         "&&" => Token::DoubleAmp,
         "||" => Token::DoubleBars,

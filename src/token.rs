@@ -29,6 +29,8 @@ pub enum Token<'input> {
     // Keywords
     Let,
     Print,
+    If,
+    Else,
 
     // Operators
     Bang,
@@ -47,6 +49,8 @@ pub enum Token<'input> {
     Semicolon,
     LeftParen,
     RightParen,
+    LeftBrace,
+    RightBrace,
 }
 
 pub struct Tokenizer<'input> {
@@ -158,6 +162,15 @@ impl <'input> Tokenizer<'input> {
                     self.bump();
                     Some(Ok((idx0, RightParen, idx0 + 1)))
                 }
+                Some((idx0, '{')) => {
+                    self.bump();
+                    Some(Ok((idx0, LeftBrace, idx0 + 1)))
+                }
+                Some((idx0, '}')) => {
+                    self.bump();
+                    Some(Ok((idx0, RightBrace, idx0 + 1)))
+                }
+
 
                 // Number
                 Some((idx0, c)) if c.is_digit(10) => Some(Ok(self.num(idx0))),
@@ -196,6 +209,8 @@ impl <'input> Tokenizer<'input> {
             "print" => (start, Print, end),
             "true" => (start, True, end),
             "false" => (start, False, end),
+            "if" => (start, If, end),
+            "else" => (start, Else, end),
             _ => (start, Ident(word), end),
         }
     }

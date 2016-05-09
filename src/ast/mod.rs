@@ -134,16 +134,45 @@ impl fmt::Display for Expr {
 #[derive(Debug)]
 pub enum Statement {
     Assign(String, Expr),
+    If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
     Print(Expr),
 }
 
-impl fmt::Display for Statement {
-    fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
+impl Statement {
+    fn fmt_with_indent(&self, mut fmt: &mut fmt::Formatter, indent_level: u32) -> fmt::Result {
+        // New string of `indent_level` spaces.
+        let indentation : String = (0..indent_level).map(|_| " ").collect();
+
         match *self {
-            Statement::Assign(ref var, ref e) => write!(fmt, "{} = {};", var, e),
-            Statement::Let(ref var, ref e) => write!(fmt, "let {} = {};", var, e),
-            Statement::Print(ref e) => write!(fmt, "print {};", e),
+            Statement::Assign(ref var, ref e) => writeln!(fmt, "{}{} = {};", indentation, var, e),
+            Statement::Let(ref var, ref e) => writeln!(fmt, "{}let {} = {};", indentation, var, e),
+            Statement::Print(ref e) => writeln!(fmt, "{}print {};", indentation, e),
+            Statement::If(ref e, ref v1, ref v2) => {
+                try!(writeln!(fmt, "if ({}) {{", e));
+
+                for stmt in v1.iter() {
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 4));
+                }
+
+                if v2.is_empty() {
+                    return Ok(());
+                }
+
+                try!(writeln!(fmt, "}} else {{"));
+
+                for stmt in v2.iter() {
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 4));
+                }
+
+                writeln!(fmt, "}}")
+            }
         }
+    }
+}
+
+impl fmt::Display for Statement {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        self.fmt_with_indent(fmt, 0)
     }
 }

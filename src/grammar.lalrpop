@@ -15,11 +15,25 @@ BinExp<Op, NextLevel>: Expr = {
 
 // Statements -------------------------------------------------------------------------------------
 
-pub Stmt: Statement = {
+pub Stmt = {
+    SingleStmt,
+    If,
+};
+
+SingleStmt: Statement = {
     <Ident> "=" <Exp> ";" => Statement::Assign(<>),
     "let" <Ident> "=" <Exp> ";" => Statement::Let(<>),
     "print" <Exp> ";" => Statement::Print(<>),
+    "if" <c:Clause> <b1:Block> "else" <b2:Block> => Statement::If(c, b1, b2),
 };
+
+If: Statement = {
+    "if" <c:Clause> <b:Block> => Statement::If(c, b, vec![]),
+    "if" <c:Clause> <b:Block> "else" <i:If> => Statement::If(c, b, vec![i]),
+};
+
+Block= "{" <Stmt+> "}";
+Clause = "(" <Exp> ")";
 
 // Expressions ------------------------------------------------------------------------------------
 
@@ -90,6 +104,8 @@ extern {
         "Ident" => Token::Ident(<&'input str>),
         "let" => Token::Let,
         "print" => Token::Print,
+        "if" => Token::If,
+        "else" => Token::Else,
         "!" => Token::Bang,
         "&&" => Token::DoubleAmp,
         "||" => Token::DoubleBars,
@@ -104,5 +120,7 @@ extern {
         ";" => Token::Semicolon,
         "(" => Token::LeftParen,
         ")" => Token::RightParen,
+        "{" => Token::LeftBrace,
+        "}" => Token::RightBrace,
     }
 }

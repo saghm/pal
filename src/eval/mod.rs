@@ -21,6 +21,20 @@ impl Statement {
                 state.insert(var.clone(), v);
                 Ok(())
             }
+            Statement::If(ref exp, ref block1, ref block2) => {
+                let block = match try!(exp.eval(state)) {
+                    Value::Bool(true) => block1,
+                    Value::Bool(false) => block2,
+                    Value::Int(_) => return Err(Error::type_error(
+                        &format!("`{}` is an int, so `if ({}) ...` is invalid", exp, exp)))
+                };
+
+                for stmt in block.iter() {
+                    try!(stmt.eval(state));
+                }
+
+                Ok(())
+            }
             Statement::Let(ref var, ref e) => {
                 let v = try!(e.eval(state));
                 state.insert(var.clone(), v);

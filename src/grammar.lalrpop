@@ -89,10 +89,12 @@ Value: Value = {
     "true" => Value::Bool(true),
     "false" => Value::Bool(false),
     Int => Value::Int(<>),
+    Str => Value::Str(<>),
 };
 
 Int: i64 = "I64" => i64::from_str(<>).unwrap();
 Ident: String = "Ident" => String::from(<>);
+Str: String = "String" => String::from(<>);
 
 extern {
     type Location = usize;
@@ -124,5 +126,6 @@ extern {
         ")" => Token::RightParen,
         "{" => Token::LeftBrace,
         "}" => Token::RightBrace,
+        "String" => Token::StringLiteral(<&'input str>),
     }
 }

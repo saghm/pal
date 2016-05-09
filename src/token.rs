@@ -22,6 +22,7 @@ pub enum Token<'input> {
     True,
     False,
     I64(&'input str),
+    StringLiteral(&'input str),
 
     // Identifiers
     Ident(&'input str),
@@ -171,7 +172,10 @@ impl <'input> Tokenizer<'input> {
                     self.bump();
                     Some(Ok((idx0, RightBrace, idx0 + 1)))
                 }
-
+                Some((idx0, '"')) => {
+                    self.bump();
+                    Some(self.string_literal(idx0))
+                }
 
                 // Number
                 Some((idx0, c)) if c.is_digit(10) => Some(Ok(self.num(idx0))),
@@ -200,6 +204,33 @@ impl <'input> Tokenizer<'input> {
     fn bump(&mut self) -> Option<(usize, char)> {
         self.look_ahead = self.chars.next();
         self.look_ahead
+    }
+
+    fn string_literal(&mut self, idx0: usize) -> Result<Spanned<Token<'input>>, Error> {
+        let mut escape = false;
+        let terminate = |c: char| {
+            if escape {
+                escape = false;
+                false
+            } else if c == '\\' {
+                escape = true;
+                false
+            } else if c == '"' {
+                true
+            } else {
+                false
+            }
+        };
+        match self.take_until(terminate) {
+            Some(idx1) => {
+                self.bump(); // consume the '"'
+                let text = &self.text[idx0+1..idx1]; // do not include the "" in the str
+                Ok((idx0, StringLiteral(text), idx1+1))
+            }
+            None => {
+                error(String::from("Unterminated string literal"), idx0)
+            }
+        }
     }
 
     fn identifierish(&mut self, idx0: usize) -> Spanned<Token<'input>> {

@@ -7,6 +7,7 @@ use std::fmt;
 pub enum Value {
     Bool(bool),
     Int(i64),
+    Str(String),
 }
 
 impl fmt::Display for Value {
@@ -14,6 +15,7 @@ impl fmt::Display for Value {
         match *self {
             Value::Bool(b) => write!(fmt, "{}", b),
             Value::Int(i) => write!(fmt, "{}", i),
+            Value::Str(ref s) => write!(fmt, "{}", s),
         }
     }
 }

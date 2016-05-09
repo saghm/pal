@@ -26,7 +26,9 @@ impl Statement {
                     Value::Bool(true) => block1,
                     Value::Bool(false) => block2,
                     Value::Int(_) => return Err(Error::type_error(
-                        &format!("`{}` is an int, so `if ({}) ...` is invalid", exp, exp)))
+                        &format!("`{}` is an int, so `if ({}) ...` is invalid", exp, exp))),
+                    Value::Str(_) => return Err(Error::type_error(
+                        &format!("`{}` is a string, so `if ({}) ...` is invalid", exp, exp)))
                 };
 
                 for stmt in block.iter() {
@@ -50,6 +52,8 @@ impl Statement {
                     Value::Bool(false) => return Ok(()),
                     Value::Int(_) => return Err(Error::type_error(
                         &format!("`{}` is an int, so `while ({}) ...` is invalid", exp, exp))),
+                    Value::Str(_) => return Err(Error::type_error(
+                        &format!("`{}` is a string, so `while ({}) ...` is invalid", exp, exp)))
                 };
 
                 for stmt in block.iter() {
@@ -89,7 +93,9 @@ impl Expr {
                 match try!(e.eval(state)) {
                     Value::Bool(b) => Ok(Value::Bool(!b)),
                     Value::Int(i) => Err(Error::type_error(
-                        &format!("`{}` is not a boolean, so `!{}` is invalid", i, self))),
+                        &format!("`{}` is not a boolean, so `!{}` is invalid", i, i))),
+                    Value::Str(s) => Err(Error::type_error(
+                        &format!("`{}` is not a boolean, so `!{}` is invalid", s, s))),
                 }
             }
             Expr::Value(ref v) => Ok(v.clone()),

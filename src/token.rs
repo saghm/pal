@@ -33,6 +33,7 @@ pub enum Token<'input> {
     If,
     Else,
     While,
+    Return,
 
     // Types
     Boolean,
@@ -259,6 +260,7 @@ impl <'input> Tokenizer<'input> {
             "int" => (start, Int, end),
             "string" => (start, Str, end),
             "void" => (start, Void, end),
+            "return" => (start, Return, end),
             _ => (start, Ident(word), end),
         }
     }

@@ -3,12 +3,23 @@ mod test;
 
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
     Bool,
     Int,
     Str,
     Void,
+}
+
+impl Type {
+    pub fn as_string_with_article(&self) -> &str {
+        match *self {
+            Type::Bool => "a boolean",
+            Type::Int => "an int",
+            Type::Str => "a string",
+            Type::Void => "nothing",
+        }
+    }
 }
 
 impl fmt::Display for Type {
@@ -59,7 +70,7 @@ impl fmt::Display for Value {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum BinOp {
     // Boolean
     And,
@@ -128,7 +139,7 @@ impl fmt::Display for BinOp {
 }
 
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Expr {
     BinExp(Box<Expr>, BinOp, Box<Expr>),
     Call(String, Vec<Expr>),
@@ -186,13 +197,15 @@ impl fmt::Display for Expr {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Statement {
     Assign(String, Expr),
     Defun(Type, String, Vec<String>, Vec<Statement>),
     If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
     Print(Expr),
+    Return(Expr),
+    VoidCall(String, Vec<Expr>),
     While(Expr, Vec<Statement>),
 }
 
@@ -222,8 +235,6 @@ impl Statement {
 
                 writeln!(fmt, "{}}}", indentation)
             }
-            Statement::Let(ref var, ref e) => writeln!(fmt, "{}let {} = {};", indentation, var, e),
-            Statement::Print(ref e) => writeln!(fmt, "{}print {};", indentation, e),
             Statement::If(ref e, ref v1, ref v2) => {
                 try!(writeln!(fmt, "{}if ({}) {{", e, indentation));
 
@@ -242,6 +253,22 @@ impl Statement {
                 }
 
                 writeln!(fmt, "{}}}", indentation)
+            }
+            Statement::Let(ref var, ref e) => writeln!(fmt, "{}let {} = {};", indentation, var, e),
+            Statement::Print(ref e) => writeln!(fmt, "{}print {};", indentation, e),
+            Statement::Return(ref e) => writeln!(fmt, "{}return {};", indentation, e),
+            Statement::VoidCall(ref name, ref args) => {
+                try!(write!(fmt, "{}{}(", indentation, name));
+
+                for (i, arg) in args.iter().enumerate() {
+                    if i != 0 {
+                        try!(write!(fmt, ", "));
+                    }
+
+                    try!(write!(fmt, "{}", arg));
+                }
+
+                write!(fmt, ");")
             }
             Statement::While(ref e, ref v) => {
                 try!(writeln!(fmt, "{}while ({}) {{", e, indentation));

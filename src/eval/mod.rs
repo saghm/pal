@@ -9,21 +9,14 @@ use error::{Error, Result};
 use state::State;
 
 impl Statement {
-    pub fn eval(&self, state: &mut State) -> Result<()> {
+    pub fn eval(&self, state: &mut State) -> Result<Option<Value>> {
         match *self {
             Statement::Assign(ref var, ref exp) => {
-                if !state.contains_var(var) {
-                    return Err(Error::undef_var_error(
-                        &format!("The variable `{}` has not been declared, so it can't have a value assigned to it", var)))
-                }
-
                 let val = try!(exp.eval(state));
-                state.assign(var, val);
-                Ok(())
+                state.assign(var, val).map(|_| None)
             }
-            Statement::Defun(..) => {
-                unimplemented!()
-            }
+            Statement::Defun(ref t, ref name, ref params, ref body) =>
+                state.define_func(t, name, params, body).map(|_| None),
             Statement::If(ref exp, ref block1, ref block2) => {
                 let val = try!(exp.eval(state));
                 let block = match val {
@@ -34,31 +27,37 @@ impl Statement {
                 };
 
                 for stmt in block.iter() {
-                    try!(stmt.eval(state));
+                    if let v @ Some(_) = try!(stmt.eval(state)) {
+                        return Ok(v);
+                    }
                 }
 
-                Ok(())
+                Ok(None)
             }
             Statement::Let(ref var, ref exp) => {
                 let val = try!(exp.eval(state));
-                state.assign(var, val);
-                Ok(())
+                state.define_var(var, val);
+                Ok(None)
             }
             Statement::Print(ref exp) => {
                 println!("{}", try!(exp.eval(state)));
-                Ok(())
+                Ok(None)
             }
+            Statement::Return(ref exp) => exp.eval(state).map(Some),
+            Statement::VoidCall(ref name, ref args) => state.call_function(name, args).map(|_| None),
             Statement::While(ref exp, ref block) => {
                 let val = try!(exp.eval(state));
                 match val {
                     Value::Bool(true) => (),
-                    Value::Bool(false) => return Ok(()),
+                    Value::Bool(false) => return Ok(None),
                     _ => return Err(Error::type_error(
                         &format!("`{}` is {}, so `while ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp))),
                 };
 
                 for stmt in block.iter() {
-                    try!(stmt.eval(state));
+                    if let v @ Some(_) = try!(stmt.eval(state)) {
+                        return Ok(v);
+                    }
                 }
 
                 self.eval(state)
@@ -90,8 +89,13 @@ impl Expr {
                     BinOp::Modulus => arith_exp(self, val1, val2, |x, y| x % y),
                 }
             }
-            Expr::Call(..) => {
-                unimplemented!()
+            Expr::Call(ref name, ref args) => {
+                match state.call_function(name, args) {
+                    Ok(Some(val)) => Ok(val),
+                    Ok(None) => Err(Error::type_error(
+                        &format!("The function {} doesn't return anything, so {} doesn't make sense", name, self))),
+                    Err(e) => Err(e),
+                }
             }
             Expr::Not(ref exp) => {
                 match try!(exp.eval(state)) {

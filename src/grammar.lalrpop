@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use ast::{Value, BinOp, Expr, Statement};
+use ast::{BinOp, Expr, Statement, Type, Value};
 use token::{self, Token};
 
 grammar<'input>(text: &'input str);
@@ -13,9 +13,26 @@ BinExp<Op, NextLevel>: Expr = {
     NextLevel,
 };
 
+List<T>: Vec<T> = {
+    <T> => vec![<>],
+    <l:List<T>> "," <t:T> => {
+        let mut v = l;
+        v.push(t);
+        v
+    }
+};
+
+ParenList<T>: Vec<T> = "(" <List<T>?> ")" => <>.unwrap_or(Vec::new());
+
+
 // Statements -------------------------------------------------------------------------------------
 
-pub Stmt = {
+pub Stmt: Statement = {
+    SimpleStmt,
+    <Type> <Ident> <Params> <Block> => Statement::Defun(<>),
+};
+
+SimpleStmt = {
     SingleStmt,
     If,
 };
@@ -33,8 +50,18 @@ If: Statement = {
     "if" <c:Clause> <b:Block> "else" <i:If> => Statement::If(c, b, vec![i]),
 };
 
-Block= "{" <Stmt+> "}";
+Block = "{" <SimpleStmt*> "}";
 Clause = "(" <Exp> ")";
+
+IdentList = List<Ident>;
+Params = ParenList<Ident>;
+
+Type: Type = {
+    "boolean" => Type::Bool,
+    "int" => Type::Int,
+    "string" => Type::Str,
+    "void" => Type::Void,
+};
 
 // Expressions ------------------------------------------------------------------------------------
 
@@ -75,6 +102,11 @@ MulOp: BinOp = {
 
 NotExp: Expr = {
     "!" <NotExp> => Expr::Not(Box::new(<>)),
+    Call,
+};
+
+Call: Expr = {
+    <Ident> <ParenList<Exp>> => Expr::Call(<>),
     Term,
 };
 
@@ -83,7 +115,6 @@ Term: Expr = {
     Value => Expr::Value(<>),
     "(" <Exp> ")",
 };
-
 
 Value: Value = {
     "true" => Value::Bool(true),
@@ -94,7 +125,7 @@ Value: Value = {
 
 Int: i64 = "I64" => i64::from_str(<>).unwrap();
 Ident: String = "Ident" => String::from(<>);
-Str: String = "String" => String::from(<>);
+Str: String = "StringLit" => String::from(<>);
 
 extern {
     type Location = usize;
@@ -110,6 +141,10 @@ extern {
         "if" => Token::If,
         "else" => Token::Else,
         "while" => Token::While,
+        "boolean" => Token::Boolean,
+        "int" => Token::Int,
+        "string" => Token::Str,
+        "void" => Token::Void,
         "!" => Token::Bang,
         "&&" => Token::DoubleAmp,
         "||" => Token::DoubleBars,
@@ -121,11 +156,12 @@ extern {
         "+" => Token::Plus,
         "/" => Token::Slash,
         "*" => Token::Star,
+        "," => Token::Comma,
         ";" => Token::Semicolon,
         "(" => Token::LeftParen,
         ")" => Token::RightParen,
         "{" => Token::LeftBrace,
         "}" => Token::RightBrace,
-        "String" => Token::StringLiteral(<&'input str>),
+        "StringLit" => Token::StringLiteral(<&'input str>),
     }
 }

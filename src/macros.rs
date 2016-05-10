@@ -1,4 +1,4 @@
-// Misc
+// Misc -------------------------------------------------------------------------------------------
 
 macro_rules! stringify_from {
     ($id:ident) => (String::from(stringify!($id)))

@@ -34,6 +34,12 @@ pub enum Token<'input> {
     Else,
     While,
 
+    // Types
+    Boolean,
+    Int,
+    Str,
+    Void,
+
     // Operators
     Bang,
     DoubleAmp,
@@ -48,6 +54,7 @@ pub enum Token<'input> {
     Star,
 
     // Punctuation
+    Comma,
     Semicolon,
     LeftParen,
     RightParen,
@@ -152,6 +159,10 @@ impl <'input> Tokenizer<'input> {
                 }
 
                 // Punctuation
+                Some((idx0, ',')) => {
+                    self.bump();
+                    Some(Ok((idx0, Comma, idx0 + 1)))
+                }
                 Some((idx0, ';')) => {
                     self.bump();
                     Some(Ok((idx0, Semicolon, idx0 + 1)))
@@ -244,6 +255,10 @@ impl <'input> Tokenizer<'input> {
             "if" => (start, If, end),
             "else" => (start, Else, end),
             "while" => (start, While, end),
+            "boolean" => (start, Boolean, end),
+            "int" => (start, Int, end),
+            "string" => (start, Str, end),
+            "void" => (start, Void, end),
             _ => (start, Ident(word), end),
         }
     }

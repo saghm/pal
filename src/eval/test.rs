@@ -15,8 +15,8 @@ fn arith() {
     stmt3.eval(&mut state).unwrap();
 
     assert_eq!(2, state.len());
-    assert_eq!(Value::Int(-36), *state.get("x").unwrap());
-    assert_eq!(Value::Int(3), *state.get("y").unwrap());
+    assert_eq!(Value::Int(-36), *state.lookup("x").unwrap());
+    assert_eq!(Value::Int(3), *state.lookup("y").unwrap());
 }
 
 #[test]
@@ -32,6 +32,6 @@ fn bool() {
     stmt3.eval(&mut state).unwrap();
 
     assert_eq!(2, state.len());
-    assert_eq!(Value::Bool(true), *state.get("x").unwrap());
-    assert_eq!(Value::Bool(false), *state.get("y").unwrap());
+    assert_eq!(Value::Bool(true), *state.lookup("x").unwrap());
+    assert_eq!(Value::Bool(false), *state.lookup("y").unwrap());
 }

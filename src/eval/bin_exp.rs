@@ -16,21 +16,11 @@ pub fn eq_exp<F>(exp: &Expr, v1: Value, v2: Value, fun: F) -> Result<Value>
     where F: Fn(Value, Value) -> bool {
     match (&v1, &v2) {
         (&Value::Bool(_), &Value::Bool(_)) |
-        (&Value::Int(_), &Value::Int(_)) => Ok(Value::Bool(fun(v1, v2))),
-        (&Value::Bool(_), &Value::Int(_)) => Err(Error::type_error(
-            &format!("`{}` is a boolean and `{}` is an int, so `{}` is invalid", v1, v2, exp))),
-        (&Value::Bool(_), &Value::Str(_)) => Err(Error::type_error(
-            &format!("`{}` is a boolean and `{}` is a string, so `{}` is invalid", v1, v2, exp))),
-        (&Value::Int(_), &Value::Bool(_)) => Err(Error::type_error(
-            &format!("`{}` is an int and `{}` is a boolean, so `{}` is invalid", v1, v2, exp))),
-        (&Value::Int(_), &Value::Str(_)) => Err(Error::type_error(
-            &format!("`{}` is an int and `{}` is a string, so `{}` is invalid", v1, v2, exp))),
-        (&Value::Str(_), &Value::Bool(_)) => Err(Error::type_error(
-            &format!("`{}` is a string and `{}` is a boolean, so `{}` is invalid", v1, v2, exp))),
-        (&Value::Str(_), &Value::Int(_)) => Err(Error::type_error(
-            &format!("`{}` is a string and `{}` is a int, so `{}` is invalid", v1, v2, exp))),
-        (&Value::Str(_), &Value::Str(_)) => Err(Error::type_error(
-            &format!("`{}` is a string and `{}` is a string, so `{}` is invalid", v1, v2, exp))),
+        (&Value::Int(_), &Value::Int(_)) |
+        (&Value::Str(_), &Value::Str(_)) => Ok(Value::Bool(fun(v1, v2))),
+        _ => Err(Error::type_error(
+            &format!("`{}` is {} and `{}` is {}, so `{}` doesn't make sense",
+                     v1, v1.type_string_with_article(), v2, v2.type_string_with_article(), exp))),
     }
 }
 

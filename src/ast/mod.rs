@@ -3,11 +3,50 @@ mod test;
 
 use std::fmt;
 
+#[derive(Debug)]
+pub enum Type {
+    Bool,
+    Int,
+    Str,
+    Void,
+}
+
+impl fmt::Display for Type {
+    fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Type::Bool => write!(fmt, "boolean"),
+            Type::Int => write!(fmt, "int"),
+            Type::Str => write!(fmt, "string"),
+            Type::Void => write!(fmt, "void"),
+        }
+    }
+}
+
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Value {
     Bool(bool),
     Int(i64),
     Str(String),
+}
+
+impl Value {
+    pub fn type_string_with_article(&self) -> &str {
+        match *self {
+            Value::Bool(_) => "a boolean",
+            Value::Int(_) => "an int",
+            Value::Str(_) => "a string",
+        }
+    }
+
+    pub fn is_a(&self, t: &Type) -> bool {
+        match (self, t) {
+            (&Value::Bool(_), &Type::Bool) |
+            (&Value::Int(_), &Type::Int) |
+            (&Value::Str(_), &Type::Str) => true,
+            _ => false
+        }
+    }
 }
 
 impl fmt::Display for Value {
@@ -92,6 +131,7 @@ impl fmt::Display for BinOp {
 #[derive(Debug)]
 pub enum Expr {
     BinExp(Box<Expr>, BinOp, Box<Expr>),
+    Call(String, Vec<Expr>),
     Not(Box<Expr>),
     Value(Value),
     Var(String),
@@ -126,6 +166,19 @@ impl fmt::Display for Expr {
                     write!(fmt, "{}", e2)
                 }
             }
+            Expr::Call(ref func, ref args) => {
+                try!(write!(fmt, "{}(", func));
+
+                for (i, arg) in args.iter().enumerate() {
+                    if i != 0 {
+                        try!(write!(fmt, ", "));
+                    }
+
+                    try!(write!(fmt, "{}", arg));
+                }
+
+                write!(fmt, ")")
+            }
             Expr::Not(ref e1) => write!(fmt, "!{}", e1),
             Expr::Value(ref v) => write!(fmt, "{}", v),
             Expr::Var(ref s) => write!(fmt, "{}", s),
@@ -136,6 +189,7 @@ impl fmt::Display for Expr {
 #[derive(Debug)]
 pub enum Statement {
     Assign(String, Expr),
+    Defun(Type, String, Vec<String>, Vec<Statement>),
     If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
     Print(Expr),
@@ -149,10 +203,29 @@ impl Statement {
 
         match *self {
             Statement::Assign(ref var, ref e) => writeln!(fmt, "{}{} = {};", indentation, var, e),
+            Statement::Defun(ref t, ref name, ref params, ref body) => {
+                try!(write!(fmt, "{}{} {}(", indentation, t, name));
+
+                for (i, param) in params.iter().enumerate() {
+                    if i != 0 {
+                        try!(write!(fmt, ", "));
+                    }
+
+                    try!(write!(fmt, "{}", param));
+                }
+
+                try!(writeln!(fmt, ") {{"));
+
+                for stmt in body.iter() {
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 4));
+                }
+
+                writeln!(fmt, "{}}}", indentation)
+            }
             Statement::Let(ref var, ref e) => writeln!(fmt, "{}let {} = {};", indentation, var, e),
             Statement::Print(ref e) => writeln!(fmt, "{}print {};", indentation, e),
             Statement::If(ref e, ref v1, ref v2) => {
-                try!(writeln!(fmt, "if ({}) {{", e));
+                try!(writeln!(fmt, "{}if ({}) {{", e, indentation));
 
                 for stmt in v1.iter() {
                     try!(stmt.fmt_with_indent(fmt, indent_level + 4));
@@ -162,22 +235,22 @@ impl Statement {
                     return Ok(());
                 }
 
-                try!(writeln!(fmt, "}} else {{"));
+                try!(writeln!(fmt, "{}}} else {{", indentation));
 
                 for stmt in v2.iter() {
                     try!(stmt.fmt_with_indent(fmt, indent_level + 4));
                 }
 
-                writeln!(fmt, "}}")
+                writeln!(fmt, "{}}}", indentation)
             }
             Statement::While(ref e, ref v) => {
-                try!(writeln!(fmt, "while ({}) {{", e));
+                try!(writeln!(fmt, "{}while ({}) {{", e, indentation));
 
                 for stmt in v.iter() {
                     try!(stmt.fmt_with_indent(fmt, indent_level + 4));
                 }
 
-                writeln!(fmt, "}}")
+                writeln!(fmt, "{}}}", indentation)
             }
         }
     }

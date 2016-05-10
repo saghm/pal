@@ -11,24 +11,26 @@ use state::State;
 impl Statement {
     pub fn eval(&self, state: &mut State) -> Result<()> {
         match *self {
-            Statement::Assign(ref var, ref e) => {
-                if !state.contains_key(var) {
+            Statement::Assign(ref var, ref exp) => {
+                if !state.contains_var(var) {
                     return Err(Error::undef_var_error(
                         &format!("The variable `{}` has not been declared, so it can't have a value assigned to it", var)))
                 }
 
-                let v = try!(e.eval(state));
-                state.insert(var.clone(), v);
+                let val = try!(exp.eval(state));
+                state.assign(var, val);
                 Ok(())
             }
+            Statement::Defun(..) => {
+                unimplemented!()
+            }
             Statement::If(ref exp, ref block1, ref block2) => {
-                let block = match try!(exp.eval(state)) {
+                let val = try!(exp.eval(state));
+                let block = match val {
                     Value::Bool(true) => block1,
                     Value::Bool(false) => block2,
-                    Value::Int(_) => return Err(Error::type_error(
-                        &format!("`{}` is an int, so `if ({}) ...` is invalid", exp, exp))),
-                    Value::Str(_) => return Err(Error::type_error(
-                        &format!("`{}` is a string, so `if ({}) ...` is invalid", exp, exp)))
+                    _ => return Err(Error::type_error(
+                        &format!("`{}` is {}, so `if ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp))),
                 };
 
                 for stmt in block.iter() {
@@ -37,23 +39,22 @@ impl Statement {
 
                 Ok(())
             }
-            Statement::Let(ref var, ref e) => {
-                let v = try!(e.eval(state));
-                state.insert(var.clone(), v);
+            Statement::Let(ref var, ref exp) => {
+                let val = try!(exp.eval(state));
+                state.assign(var, val);
                 Ok(())
             }
-            Statement::Print(ref e) => {
-                println!("{}", try!(e.eval(state)));
+            Statement::Print(ref exp) => {
+                println!("{}", try!(exp.eval(state)));
                 Ok(())
             }
             Statement::While(ref exp, ref block) => {
-                match try!(exp.eval(state)) {
+                let val = try!(exp.eval(state));
+                match val {
                     Value::Bool(true) => (),
                     Value::Bool(false) => return Ok(()),
-                    Value::Int(_) => return Err(Error::type_error(
-                        &format!("`{}` is an int, so `while ({}) ...` is invalid", exp, exp))),
-                    Value::Str(_) => return Err(Error::type_error(
-                        &format!("`{}` is a string, so `while ({}) ...` is invalid", exp, exp)))
+                    _ => return Err(Error::type_error(
+                        &format!("`{}` is {}, so `while ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp))),
                 };
 
                 for stmt in block.iter() {
@@ -69,39 +70,40 @@ impl Statement {
 impl Expr {
     pub fn eval(&self, state: &mut State) -> Result<Value> {
         match *self {
-            Expr::BinExp(ref e1, ref o, ref e2) => {
-                let v1 = try!(e1.eval(state));
-                let v2 = try!(e2.eval(state));
+            Expr::BinExp(ref exp1, ref op, ref exp2) => {
+                let val1 = try!(exp1.eval(state));
+                let val2 = try!(exp2.eval(state));
 
-                match *o {
-                    BinOp::And => bool_exp(self, v1, v2, |x, y| x && y),
-                    BinOp::Or =>  bool_exp(self, v1, v2, |x, y| x || y),
-                    BinOp::Equal => eq_exp(self, v1, v2, |x, y| x == y),
-                    BinOp::NotEqual => eq_exp(self, v1, v2, |x, y| x != y),
-                    BinOp::GreaterOrEqual => ineq_exp(self, v1, v2, |x, y| x >= y),
-                    BinOp::GreaterThan => ineq_exp(self, v1, v2, |x, y| x > y),
-                    BinOp::LessOrEqual => ineq_exp(self, v1, v2, |x, y| x <= y),
-                    BinOp::LessThan => ineq_exp(self, v1, v2, |x, y| x < y),
-                    BinOp::Plus => arith_exp(self, v1, v2, |x, y| x + y),
-                    BinOp::Minus => arith_exp(self, v1, v2, |x, y| x - y),
-                    BinOp::Times => arith_exp(self, v1, v2, |x, y| x * y),
-                    BinOp::Divide => arith_exp(self, v1, v2, |x, y| x / y),
-                    BinOp::Modulus => arith_exp(self, v1, v2, |x, y| x % y),
+                match *op {
+                    BinOp::And => bool_exp(self, val1, val2, |x, y| x && y),
+                    BinOp::Or =>  bool_exp(self, val1, val2, |x, y| x || y),
+                    BinOp::Equal => eq_exp(self, val1, val2, |x, y| x == y),
+                    BinOp::NotEqual => eq_exp(self, val1, val2, |x, y| x != y),
+                    BinOp::GreaterOrEqual => ineq_exp(self, val1, val2, |x, y| x >= y),
+                    BinOp::GreaterThan => ineq_exp(self, val1, val2, |x, y| x > y),
+                    BinOp::LessOrEqual => ineq_exp(self, val1, val2, |x, y| x <= y),
+                    BinOp::LessThan => ineq_exp(self, val1, val2, |x, y| x < y),
+                    BinOp::Plus => arith_exp(self, val1, val2, |x, y| x + y),
+                    BinOp::Minus => arith_exp(self, val1, val2, |x, y| x - y),
+                    BinOp::Times => arith_exp(self, val1, val2, |x, y| x * y),
+                    BinOp::Divide => arith_exp(self, val1, val2, |x, y| x / y),
+                    BinOp::Modulus => arith_exp(self, val1, val2, |x, y| x % y),
                 }
             }
-            Expr::Not(ref e) => {
-                match try!(e.eval(state)) {
+            Expr::Call(..) => {
+                unimplemented!()
+            }
+            Expr::Not(ref exp) => {
+                match try!(exp.eval(state)) {
                     Value::Bool(b) => Ok(Value::Bool(!b)),
-                    Value::Int(i) => Err(Error::type_error(
-                        &format!("`{}` is not a boolean, so `!{}` is invalid", i, i))),
-                    Value::Str(s) => Err(Error::type_error(
-                        &format!("`{}` is not a boolean, so `!{}` is invalid", s, s))),
+                    _ => Err(Error::type_error(
+                        &format!("`{}` is not a boolean, so `!{}` doesn't make sense", exp, exp))),
                 }
             }
-            Expr::Value(ref v) => Ok(v.clone()),
+            Expr::Value(ref val) => Ok(val.clone()),
             Expr::Var(ref var) => {
-                match state.get(var) {
-                    Some(v) => Ok(v.clone()),
+                match state.lookup(var) {
+                    Some(val) => Ok(val.clone()),
                     None => Err(Error::undef_var_error(
                         &format!("The variable `{}` is not defined, so it can't be used in an expression", var)))
                 }

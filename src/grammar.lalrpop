@@ -32,30 +32,29 @@ pub Stmt: Statement = {
     <Type> <Ident> <Params> <Block> => Statement::Defun(<>),
 };
 
-SimpleStmt = {
-    SingleStmt,
-    If,
-};
-
-SingleStmt: Statement = {
+SimpleStmt: Statement = {
     <Ident> "=" <Exp> ";" => Statement::Assign(<>),
     "let" <Ident> "=" <Exp> ";" => Statement::Let(<>),
     "print" <Exp> ";" => Statement::Print(<>),
-    "if" <c:Clause> <b1:Block> "else" <b2:Block> => Statement::If(c, b1, b2),
+    "if" <c:Clause> <b:Block> => Statement::If(c, b, Vec::new()),
+    "if" <c:Clause> <b1:Block> <b2:ElseBlocks> => Statement::If(c, b1, b2),
     "while" <c:Clause> <b:Block> => Statement::While(c, b),
     <Ident> <ParenList<Exp>> ";" => Statement::VoidCall(<>),
     "return" <Exp> ";" => Statement::Return(<>),
 };
 
-If: Statement = {
-    "if" <c:Clause> <b:Block> => Statement::If(c, b, vec![]),
-    "if" <c:Clause> <b:Block> "else" <i:If> => Statement::If(c, b, vec![i]),
-};
-
 Block = "{" <SimpleStmt*> "}";
 Clause = "(" <Exp> ")";
-
+Else = "else" <Block>;
+ElseIf = "else" "if" <Clause> <Block>;
 IdentList = List<Ident>;
+
+ElseBlocks: Vec<Statement> = {
+    Else,
+    <cb:ElseIf> => vec![Statement::If(cb.0, cb.1, Vec::new())],
+    <cb:ElseIf> <b:ElseBlocks> => vec![Statement::If(cb.0, cb.1, b)],
+};
+
 Params = ParenList<Ident>;
 
 Type: Type = {

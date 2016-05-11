@@ -48,24 +48,16 @@ macro_rules! stmt_if {
     (($c:expr) { $($stmt1:expr);* } els { $($stmt2:expr);* }) =>
         (Statement::If($c, vec![$($stmt1),*], vec![$($stmt2),*]));
 
-    // if (cond1) { ... } else if (cond2) { ...}
-    (($c1:expr) { $($stmt1:expr);* } elsif ($c2:expr) { $($stmt2:expr);* }) =>
-        (Statement::If(($c1), vec![$($stmt1),*], vec![stmt_if!(($c2) { $($stmt2);* } )]));
-
-    // if (cond1) { ... } else if (cond2) { ...} else { ... }
-    (($c1:expr) { $($stmt1:expr);* } elsif ($c2:expr) { $($stmt2:expr);* } els { $($stmt3:expr);* }) =>
-        (Statement::If(($c1), vec![$($stmt1),*], vec![stmt_if!(($c2) { $($stmt2);* } els { $($stmt3);* })]));
-
     // if (cond1) { ... } else if (cond2) { ...} else if (cond3) { ... } ... else if (condN) { ...}
-    (($c1:expr) { $($stmt1:expr);* } elsif ($c2:expr) { $($stmt2:expr);* } $(elsif ($c3:expr) { $($stmt3:expr);* }),+) =>
+    (($c1:expr) { $($stmt1:expr);* } elsif ($c2:expr) { $($stmt2:expr);* } $(elsif ($c3:expr) { $($stmt3:expr);* }),*) =>
         (Statement::If(($c1), vec![$($stmt1),*], vec![
-            stmt_if!(($c2) { $($stmt2);* } $(elsif ($c3) { $($stmt3);* }),+)
+            stmt_if!(($c2) { $($stmt2);* } $(elsif ($c3) { $($stmt3);* }),*)
         ]));
 
     // if (cond1) { ... } else if (cond2) { ...} else if (cond3) { ... } ... else if (condN) { ...} else { ... }
-    (($c1:expr) { $($stmt1:expr);* } elsif ($c2:expr) { $($stmt2:expr);* } $(elsif ($c3:expr) { $($stmt3:expr);* }),+ els { $($stmt4:expr);* }) =>
+    (($c1:expr) { $($stmt1:expr);* } elsif ($c2:expr) { $($stmt2:expr);* } $(elsif ($c3:expr) { $($stmt3:expr);* }),* els { $($stmt4:expr);* }) =>
         (Statement::If(($c1), vec![$($stmt1),*], vec![
-            stmt_if!(($c2) { $($stmt2);* } $(elsif ($c3) { $($stmt3);* }),+  els { $($stmt4);* })
+            stmt_if!(($c2) { $($stmt2);* } $(elsif ($c3) { $($stmt3);* }),*  els { $($stmt4);* })
         ]))
 }
 

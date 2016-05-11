@@ -236,7 +236,7 @@ impl Statement {
                 writeln!(fmt, "{}}}", indentation)
             }
             Statement::If(ref e, ref v1, ref v2) => {
-                try!(writeln!(fmt, "{}if ({}) {{", e, indentation));
+                try!(writeln!(fmt, "{}if ({}) {{", indentation, e));
 
                 for stmt in v1.iter() {
                     try!(stmt.fmt_with_indent(fmt, indent_level + 4));

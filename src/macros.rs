@@ -9,12 +9,16 @@ macro_rules! bin_exp {
     ($e1:expr, $o:expr, $e2:expr) => (Expr::BinExp(Box::new($e1), $o, Box::new($e2)))
 }
 
-macro_rules! int {
-    ($i:expr) => (Expr::Value(Value::Int($i)))
-}
-
 macro_rules! boolean {
     ($b:expr) => (Expr::Value(Value::Bool($b)))
+}
+
+macro_rules! call {
+    ($name:ident ($($arg:expr),*)) => (Expr::Call(stringify_from!($name), vec![$($arg),*]))
+}
+
+macro_rules! int {
+    ($i:expr) => (Expr::Value(Value::Int($i)))
 }
 
 macro_rules! var {
@@ -28,4 +32,17 @@ macro_rules! stmt_let {
 
 macro_rules! stmt_assign {
     ($v:ident, $e:expr) => (Statement::Assign(stringify_from!($v), $e))
+}
+
+macro_rules! stmt_while {
+    ($clause:expr, { $($stmt:expr);* }) => (Statement::While($clause, vec![$($stmt),*]))
+}
+
+macro_rules! defun {
+    ($ty:expr, $name:ident ($($param:ident),*) { $($stmt:expr);* }) =>
+        (Statement::Defun($ty, stringify_from!($name), vec![$(stringify_from!($param)),*], vec![$($stmt),*]))
+}
+
+macro_rules! void_call {
+    ($name:ident ($($arg:expr),*)) => (Statement::VoidCall(stringify_from!($name), vec![$($arg),*]))
 }

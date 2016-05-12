@@ -70,7 +70,7 @@ impl State {
             self.define_var(&params[i], val);
         }
 
-        for stmt in body.iter() {
+        for stmt in &body {
             if let Some(val) = try_or_exit_scope!(stmt.eval(self), self) {
                 self.exit_scope();
                 return if val.is_a(&return_type) {
@@ -138,12 +138,12 @@ impl State {
     #[allow(dead_code)]
     pub fn len(&self) -> usize {
         let mut len = self.global.len();
-        let mut temp = match &self.current {
-            &Some(ref s) => {
+        let mut temp = match self.current {
+            Some(ref s) => {
                 len += s.len();
                 s.parent()
             }
-            &None => return len,
+            None => return len,
         };
 
         while let Some(scope) = temp {

@@ -227,10 +227,8 @@ impl <'input> Tokenizer<'input> {
             } else if c == '\\' {
                 escape = true;
                 false
-            } else if c == '"' {
-                true
             } else {
-                false
+                c == '"'
             }
         };
         match self.take_until(terminate) {

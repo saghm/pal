@@ -271,7 +271,7 @@ impl Statement {
                 write!(fmt, ");")
             }
             Statement::While(ref e, ref v) => {
-                try!(writeln!(fmt, "{}while ({}) {{", e, indentation));
+                try!(writeln!(fmt, "{}while ({}) {{", indentation, e));
 
                 for stmt in v.iter() {
                     try!(stmt.fmt_with_indent(fmt, indent_level + 4));

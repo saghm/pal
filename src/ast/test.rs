@@ -34,3 +34,16 @@ fn display_bool_expr() {
 
     assert_eq!("(true || (every_little_thing || false)) != (x && y && (true || is_gonna_be_all_right))", format!("{}", e));
 }
+
+#[test]
+fn complex() {
+    let stmt = stmt_defun!(Type::Void, range(i) {
+        stmt_while!(bin_exp!(var!(i), GreaterOrEqual, int!(0)), {
+            stmt_assign!(total, bin_exp!(var!(total), Plus, call!(sum3(var!(i), bin_exp!(var!(i), Plus, int!(1)), bin_exp!(var!(i), Plus, int!(2))))));
+            stmt_assign!(i, bin_exp!(var!(i), Minus, int!(1)))
+        })
+    });
+
+    let string = "void range(i) {\n    while (i >= 0) {\n        total = total + sum3(i, i + 1, i + 2);\n        i = i - 1;\n    }\n}\n";
+    assert_eq!(string, format!("{}", stmt));
+}

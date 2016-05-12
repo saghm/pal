@@ -377,7 +377,7 @@ fn if_false_else_if2_false_else_true() {
 }
 
 #[test]
-fn functions() {
+fn complex() {
     /*
      * let total = 0;
      *

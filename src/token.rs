@@ -1,4 +1,4 @@
-// Heavily based on [https://github.com/nikomatsakis/lalrpop/blob/d17fdd812731e2794e0196bb21f669534f1e963e/lalrpop/src/tok/mod.rs]
+// Large portions of this are borrowed/copied from [https://github.com/nikomatsakis/lalrpop/blob/d17fdd812731e2794e0196bb21f669534f1e963e/lalrpop/src/tok/mod.rs]
 
 use std::str::CharIndices;
 use unicode_xid::UnicodeXID;

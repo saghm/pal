@@ -13,6 +13,7 @@ pub enum Type {
 
 impl Type {
     pub fn as_string_with_article(&self) -> &str {
+        // Returns the name of the type with the correct English indefinite article prepended.
         match *self {
             Type::Bool => "a boolean",
             Type::Int => "an int",
@@ -42,6 +43,7 @@ pub enum Value {
 }
 
 impl Value {
+    // Returns the value's type with the correct English indefinite article prepended.
     pub fn type_string_with_article(&self) -> &str {
         match *self {
             Value::Bool(_) => "a boolean",
@@ -50,6 +52,7 @@ impl Value {
         }
     }
 
+    // Checks whether the value is of a certain type.
     pub fn is_a(&self, t: &Type) -> bool {
         match (self, t) {
             (&Value::Bool(_), &Type::Bool) |
@@ -93,6 +96,7 @@ pub enum BinOp {
 }
 
 impl BinOp {
+    // Gets the precedence of an operator.
     fn precedence(&self) -> Precedence {
         match *self {
             BinOp::And => Precedence::And,
@@ -108,7 +112,7 @@ impl BinOp {
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 enum Precedence {
-    // Ordered correctly for derivation to be sound
+    // Ordered correctly for derivation to be sound; each variant has higher precedence than the previous
     Or,
     And,
     Equality,
@@ -149,6 +153,7 @@ pub enum Expr {
 }
 
 impl Expr {
+    // Returns the precedence level of the expression.
     fn precedence(&self) -> Precedence {
         match *self {
             Expr::BinExp(_, ref o, _) => o.precedence(),
@@ -160,26 +165,29 @@ impl Expr {
 impl fmt::Display for Expr {
     fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Expr::BinExp(ref e1, ref o, ref e2) => {
-                let po = o.precedence();
+            Expr::BinExp(ref exp1, ref op, ref exp2) => {
+                let op_precendence = op.precedence();
 
-                if e1.precedence() < po {
-                    try!(write!(fmt, "({})", e1));
+                // Wrap the left-hand side in parentheses if its precedence is lower than the operator
+                if exp1.precedence() < op_precendence {
+                    try!(write!(fmt, "({})", exp1));
                 } else {
-                    try!(write!(fmt, "{}", e1));
+                    try!(write!(fmt, "{}", exp1));
                 }
 
-                try!(write!(fmt, " {} ", o));
+                try!(write!(fmt, " {} ", op));
 
-                if e2.precedence() <= po {
-                    write!(fmt, "({})", e2)
+                // Wrap the left-hand side in parentheses if its precedence is not greater than the operator
+                if exp2.precedence() <= op_precendence {
+                    write!(fmt, "({})", exp2)
                 } else {
-                    write!(fmt, "{}", e2)
+                    write!(fmt, "{}", exp2)
                 }
             }
             Expr::Call(ref func, ref args) => {
                 try!(write!(fmt, "{}(", func));
 
+                // Write the arguments, separated by commas
                 for (i, arg) in args.iter().enumerate() {
                     if i != 0 {
                         try!(write!(fmt, ", "));
@@ -190,9 +198,9 @@ impl fmt::Display for Expr {
 
                 write!(fmt, ")")
             }
-            Expr::Not(ref e1) => write!(fmt, "!{}", e1),
-            Expr::Value(ref v) => write!(fmt, "{}", v),
-            Expr::Var(ref s) => write!(fmt, "{}", s),
+            Expr::Not(ref exp) => write!(fmt, "!{}", exp),
+            Expr::Value(ref val) => write!(fmt, "{}", val),
+            Expr::Var(ref var) => write!(fmt, "{}", var),
         }
     }
 }
@@ -210,15 +218,17 @@ pub enum Statement {
 }
 
 impl Statement {
+    // Formats the expression with indentation before it.
     fn fmt_with_indent(&self, mut fmt: &mut fmt::Formatter, indent_level: u32) -> fmt::Result {
-        // New string of `indent_level` spaces.
-        let indentation : String = (0..indent_level).map(|_| " ").collect();
+        // Creates a new string that is as many spaces as `indent level * 4`.
+        let indentation : String = (0..indent_level * 4).map(|_| " ").collect();
 
         match *self {
-            Statement::Assign(ref var, ref e) => writeln!(fmt, "{}{} = {};", indentation, var, e),
-            Statement::Defun(ref t, ref name, ref params, ref body) => {
-                try!(write!(fmt, "{}{} {}(", indentation, t, name));
+            Statement::Assign(ref var, ref exp) => writeln!(fmt, "{}{} = {};", indentation, var, exp),
+            Statement::Defun(ref return_type, ref name, ref params, ref body) => {
+                try!(write!(fmt, "{}{} {}(", indentation, return_type, name));
 
+                // Write the parameters, separated by commas
                 for (i, param) in params.iter().enumerate() {
                     if i != 0 {
                         try!(write!(fmt, ", "));
@@ -229,37 +239,42 @@ impl Statement {
 
                 try!(writeln!(fmt, ") {{"));
 
+                // Write the function body statements with one more level of indentation
                 for stmt in body.iter() {
-                    try!(stmt.fmt_with_indent(fmt, indent_level + 4));
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 1));
                 }
 
                 writeln!(fmt, "{}}}", indentation)
             }
-            Statement::If(ref e, ref v1, ref v2) => {
-                try!(writeln!(fmt, "{}if ({}) {{", indentation, e));
+            Statement::If(ref clause, ref true_block, ref false_block) => {
+                try!(writeln!(fmt, "{}if ({}) {{", indentation, clause));
 
-                for stmt in v1.iter() {
-                    try!(stmt.fmt_with_indent(fmt, indent_level + 4));
+                // Write the block statements with one more level of indentation
+                for stmt in true_block.iter() {
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 1));
                 }
 
-                if v2.is_empty() {
+                // Don't write the "else" clause/block unless there is something in the block.
+                if false_block.is_empty() {
                     return Ok(());
                 }
 
                 try!(writeln!(fmt, "{}}} else {{", indentation));
 
-                for stmt in v2.iter() {
-                    try!(stmt.fmt_with_indent(fmt, indent_level + 4));
+                // Write the block statements with one more level of indentation
+                for stmt in false_block.iter() {
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 1));
                 }
 
                 writeln!(fmt, "{}}}", indentation)
             }
-            Statement::Let(ref var, ref e) => writeln!(fmt, "{}let {} = {};", indentation, var, e),
-            Statement::Print(ref e) => writeln!(fmt, "{}print {};", indentation, e),
-            Statement::Return(ref e) => writeln!(fmt, "{}return {};", indentation, e),
+            Statement::Let(ref var, ref exp) => writeln!(fmt, "{}let {} = {};", indentation, var, exp),
+            Statement::Print(ref exp) => writeln!(fmt, "{}print {};", indentation, exp),
+            Statement::Return(ref exp) => writeln!(fmt, "{}return {};", indentation, exp),
             Statement::VoidCall(ref name, ref args) => {
                 try!(write!(fmt, "{}{}(", indentation, name));
 
+                // Write the arguments, separated by commas
                 for (i, arg) in args.iter().enumerate() {
                     if i != 0 {
                         try!(write!(fmt, ", "));
@@ -270,11 +285,12 @@ impl Statement {
 
                 write!(fmt, ");")
             }
-            Statement::While(ref e, ref v) => {
-                try!(writeln!(fmt, "{}while ({}) {{", indentation, e));
+            Statement::While(ref clause, ref block) => {
+                try!(writeln!(fmt, "{}while ({}) {{", indentation, clause));
 
-                for stmt in v.iter() {
-                    try!(stmt.fmt_with_indent(fmt, indent_level + 4));
+                // Write the block statements with one more level of indentation
+                for stmt in block.iter() {
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 1));
                 }
 
                 writeln!(fmt, "{}}}", indentation)

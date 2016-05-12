@@ -6,11 +6,11 @@ macro_rules! stringify_from {
 
 // Expressions ------------------------------------------------------------------------------------
 macro_rules! bin_exp {
-    ($e1:expr, $o:expr, $e2:expr) => (Expr::BinExp(Box::new($e1), $o, Box::new($e2)))
+    ($exp1:expr, $op:expr, $exp2:expr) => (Expr::BinExp(Box::new($exp1), $op, Box::new($exp2)))
 }
 
 macro_rules! boolean {
-    ($b:expr) => (Expr::Value(Value::Bool($b)))
+    ($boolean:expr) => (Expr::Value(Value::Bool($boolean)))
 }
 
 macro_rules! call {
@@ -22,17 +22,17 @@ macro_rules! int {
 }
 
 macro_rules! not {
-    ($e:expr) => (Expr::Not(Box::new($e)))
+    ($exp:expr) => (Expr::Not(Box::new($exp)))
 }
 
 macro_rules! var {
-    ($v:ident) => (Expr::Var(stringify_from!($v)))
+    ($var:ident) => (Expr::Var(stringify_from!($var)))
 }
 
 // Statements -------------------------------------------------------------------------------------
 
 macro_rules! stmt_assign {
-    ($v:ident, $e:expr) => (Statement::Assign(stringify_from!($v), $e))
+    ($var:ident, $exp:expr) => (Statement::Assign(stringify_from!($var), $exp))
 }
 
 macro_rules! stmt_defun {
@@ -42,27 +42,30 @@ macro_rules! stmt_defun {
 
 macro_rules! stmt_if {
     // if (cond) { ... }
-    (($c:expr) { $($stmt:expr);* }) => (Statement::If($c, vec![$($stmt),*], Vec::new()));
+    (($clause:expr) { $($stmt:expr);* }) => (Statement::If($clause, vec![$($stmt),*], Vec::new()));
 
     // if (cond) { ... } else { ...}
-    (($c:expr) { $($stmt1:expr);* } els { $($stmt2:expr);* }) =>
-        (Statement::If($c, vec![$($stmt1),*], vec![$($stmt2),*]));
+    (($clause:expr) { $($stmt1:expr);* } els { $($stmt2:expr);* }) =>
+        (Statement::If($clause, vec![$($stmt1),*], vec![$($stmt2),*]));
 
     // if (cond1) { ... } else if (cond2) { ...} else if (cond3) { ... } ... else if (condN) { ...}
-    (($c1:expr) { $($stmt1:expr);* } elsif ($c2:expr) { $($stmt2:expr);* } $(elsif ($c3:expr) { $($stmt3:expr);* }),*) =>
-        (Statement::If(($c1), vec![$($stmt1),*], vec![
-            stmt_if!(($c2) { $($stmt2);* } $(elsif ($c3) { $($stmt3);* }),*)
+    (($clause1:expr) { $($stmt1:expr);* }
+    elsif ($clause2:expr) { $($stmt2:expr);* } $(elsif ($clause3:expr) { $($stmt3:expr);* }),*) =>
+        (Statement::If(($clause1), vec![$($stmt1),*], vec![
+            stmt_if!(($clause2) { $($stmt2);* } $(elsif ($clause3) { $($stmt3);* }),*)
         ]));
 
     // if (cond1) { ... } else if (cond2) { ...} else if (cond3) { ... } ... else if (condN) { ...} else { ... }
-    (($c1:expr) { $($stmt1:expr);* } elsif ($c2:expr) { $($stmt2:expr);* } $(elsif ($c3:expr) { $($stmt3:expr);* }),* els { $($stmt4:expr);* }) =>
-        (Statement::If(($c1), vec![$($stmt1),*], vec![
-            stmt_if!(($c2) { $($stmt2);* } $(elsif ($c3) { $($stmt3);* }),*  els { $($stmt4);* })
+    (($clause1:expr) { $($stmt1:expr);* }
+     elsif ($clause2:expr) { $($stmt2:expr);* } $(elsif ($clause3:expr) { $($stmt3:expr);* }),*
+     els { $($stmt4:expr);* }) =>
+        (Statement::If(($clause1), vec![$($stmt1),*], vec![
+            stmt_if!(($clause2) { $($stmt2);* } $(elsif ($clause3) { $($stmt3);* }),*  els { $($stmt4);* })
         ]))
 }
 
 macro_rules! stmt_let {
-    ($v:ident, $e:expr) => (Statement::Let(stringify_from!($v), $e))
+    ($var:ident, $exp:expr) => (Statement::Let(stringify_from!($var), $exp))
 }
 
 macro_rules! stmt_void_call {

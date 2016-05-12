@@ -22,8 +22,8 @@ impl Statement {
                 let block = match val {
                     Value::Bool(true) => block1,
                     Value::Bool(false) => block2,
-                    _ => return Err(Error::type_error(
-                        &format!("`{}` is {}, so `if ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp))),
+                    _ => return Error::type_error(
+                        &format!("`{}` is {}, so `if ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp)),
                 };
 
                 for stmt in block.iter() {
@@ -50,8 +50,8 @@ impl Statement {
                 match val {
                     Value::Bool(true) => (),
                     Value::Bool(false) => return Ok(None),
-                    _ => return Err(Error::type_error(
-                        &format!("`{}` is {}, so `while ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp))),
+                    _ => return Error::type_error(
+                        &format!("`{}` is {}, so `while ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp)),
                 };
 
                 for stmt in block.iter() {
@@ -92,24 +92,24 @@ impl Expr {
             Expr::Call(ref name, ref args) => {
                 match state.call_function(name, args) {
                     Ok(Some(val)) => Ok(val),
-                    Ok(None) => Err(Error::type_error(
-                        &format!("The function {} doesn't return anything, so {} doesn't make sense", name, self))),
+                    Ok(None) => Error::type_error(
+                        &format!("The function {} doesn't return anything, so {} doesn't make sense", name, self)),
                     Err(e) => Err(e),
                 }
             }
             Expr::Not(ref exp) => {
                 match try!(exp.eval(state)) {
                     Value::Bool(b) => Ok(Value::Bool(!b)),
-                    _ => Err(Error::type_error(
-                        &format!("`{}` is not a boolean, so `!{}` doesn't make sense", exp, exp))),
+                    _ => Error::type_error(
+                        &format!("`{}` is not a boolean, so `!{}` doesn't make sense", exp, exp)),
                 }
             }
             Expr::Value(ref val) => Ok(val.clone()),
             Expr::Var(ref var) => {
                 match state.lookup(var) {
                     Some(val) => Ok(val.clone()),
-                    None => Err(Error::undef_var_error(
-                        &format!("The variable `{}` is not defined, so it can't be used in an expression", var)))
+                    None => Error::undef_var_error(
+                        &format!("The variable `{}` is not defined, so it can't be used in an expression", var))
                 }
             }
         }

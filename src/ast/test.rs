@@ -3,7 +3,7 @@ use ::ast::BinOp::*;
 
 #[test]
 fn display_arith_expr() {
-    let e =
+    let exp =
         bin_exp!(
             bin_exp!(
                 int!(100),
@@ -15,12 +15,12 @@ fn display_arith_expr() {
                 Modulus,
                 bin_exp!(int!(-6), Plus, int!(3))));
 
-    assert_eq!("100 / (-12 / 6) == 4 * 7 % (-6 + 3)", format!("{}", e));
+    assert_eq!("100 / (-12 / 6) == 4 * 7 % (-6 + 3)", format!("{}", exp));
 }
 
 #[test]
 fn display_bool_expr() {
-    let e =
+    let exp =
         bin_exp!(
             bin_exp!(
                 boolean!(true),
@@ -32,7 +32,7 @@ fn display_bool_expr() {
                 And,
                 bin_exp!(boolean!(true), Or, var!(is_gonna_be_all_right))));
 
-    assert_eq!("(true || (every_little_thing || false)) != (x && y && (true || is_gonna_be_all_right))", format!("{}", e));
+    assert_eq!("(true || (every_little_thing || false)) != (x && y && (true || is_gonna_be_all_right))", format!("{}", exp));
 }
 
 #[test]

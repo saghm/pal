@@ -8,17 +8,17 @@ grammar<'input>(text: &'input str);
 // Macros -----------------------------------------------------------------------------------------
 
 BinExp<Op, NextLevel>: Expr = {
-    <b:BinExp<Op, NextLevel>> <o:Op> <n:NextLevel> =>
-        Expr::BinExp(Box::new(b), o, Box::new(n)),
+    <lhs:BinExp<Op, NextLevel>> <op:Op> <rhs:NextLevel> =>
+        Expr::BinExp(Box::new(lhs), op, Box::new(rhs)),
     NextLevel,
 };
 
 List<T>: Vec<T> = {
     <T> => vec![<>],
-    <l:List<T>> "," <t:T> => {
-        let mut v = l;
-        v.push(t);
-        v
+    <list:List<T>> "," <elem:T> => {
+        let mut vec = list;
+        vec.push(elem);
+        vec
     }
 };
 
@@ -36,9 +36,9 @@ SimpleStmt: Statement = {
     <Ident> "=" <Exp> ";" => Statement::Assign(<>),
     "let" <Ident> "=" <Exp> ";" => Statement::Let(<>),
     "print" <Exp> ";" => Statement::Print(<>),
-    "if" <c:Clause> <b:Block> => Statement::If(c, b, Vec::new()),
-    "if" <c:Clause> <b1:Block> <b2:ElseBlocks> => Statement::If(c, b1, b2),
-    "while" <c:Clause> <b:Block> => Statement::While(c, b),
+    "if" <clause:Clause> <block:Block> => Statement::If(clause, block, Vec::new()),
+    "if" <clause:Clause> <block1:Block> <block2:ElseBlocks> => Statement::If(clause, block1, block2),
+    "while" <clause:Clause> <block:Block> => Statement::While(clause, block),
     <Ident> <ParenList<Exp>> ";" => Statement::VoidCall(<>),
     "return" <Exp> ";" => Statement::Return(<>),
 };
@@ -51,8 +51,8 @@ IdentList = List<Ident>;
 
 ElseBlocks: Vec<Statement> = {
     Else,
-    <cb:ElseIf> => vec![Statement::If(cb.0, cb.1, Vec::new())],
-    <cb:ElseIf> <b:ElseBlocks> => vec![Statement::If(cb.0, cb.1, b)],
+    <ElseIf> => vec![Statement::If(<>.0, <>.1, Vec::new())],
+    <elsif:ElseIf> <els:ElseBlocks> => vec![Statement::If(elsif.0, elsif.1, els)],
 };
 
 Params = ParenList<Ident>;

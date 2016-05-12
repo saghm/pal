@@ -27,18 +27,18 @@ fn main() {
     let mut state = State::new();
     let mut stderr = io::stderr();
 
+    // Create history file if it doesn't already exist.
     OpenOptions::new().write(true).create(true).truncate(false).open(".history").expect("Unable to create history file");
 
-    match histfile::read(Some(Path::new(".history"))) {
-        Ok(_) => (),
-        Err(_) => panic!("Unable to read history file"),
-    };
+    // Read in history from the file.
+    histfile::read(Some(Path::new(".history"))).expect("Unable to read history file");
 
     while let Some(input) = readline::readline(">> ").unwrap() {
         if input.is_empty() {
             continue;
         }
 
+        // Add input to both temporary and permanent history.
         listmgmt::add(&input).unwrap();
         let _ = histfile::write(Some(Path::new(".history")));
 

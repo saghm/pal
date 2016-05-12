@@ -20,44 +20,44 @@ impl Error {
         Error { err: t, message: String::from(s) }
     }
 
-    pub fn argument_error(s: &str) -> Self {
-        Self::new(ErrorType::ArgumentError, s)
+    pub fn argument_error<T>(s: &str) -> Result<T> {
+        Err(Self::new(ErrorType::Argument, s))
     }
 
-    pub fn redef_func_error(s: &str) -> Self {
-        Self::new(ErrorType::RedefFunc, s)
+    pub fn redef_func_error<T>(s: &str) -> Result<T> {
+        Err(Self::new(ErrorType::RedefinedFunction, s))
     }
 
-    pub fn type_error(s: &str) -> Self {
-        Self::new(ErrorType::Type, s)
+    pub fn type_error<T>(s: &str) -> Result<T> {
+        Err(Self::new(ErrorType::Type, s))
     }
 
-    pub fn undef_func_error(s: &str) -> Self {
-        Self::new(ErrorType::UndefFunc, s)
+    pub fn undef_func_error<T>(s: &str) -> Result<T> {
+        Err(Self::new(ErrorType::UndefinedFunction, s))
     }
 
-    pub fn undef_var_error(s: &str) -> Self {
-        Self::new(ErrorType::UndefVar, s)
+    pub fn undef_var_error<T>(s: &str) -> Result<T> {
+        Err(Self::new(ErrorType::UndefinedVariable, s))
     }
 }
 
 #[derive(Debug)]
 pub enum ErrorType {
-    ArgumentError,
-    RedefFunc,
+    Argument,
+    RedefinedFunction,
     Type,
-    UndefFunc,
-    UndefVar,
+    UndefinedFunction,
+    UndefinedVariable,
 }
 
 impl fmt::Display for ErrorType {
     fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ErrorType::ArgumentError => write!(fmt, "ArgumentError"),
-            ErrorType::RedefFunc => write!(fmt, "RedefFunc"),
+            ErrorType::Argument => write!(fmt, "ArgumentError"),
+            ErrorType::RedefinedFunction => write!(fmt, "RedefinedFunctionError"),
             ErrorType::Type => write!(fmt, "TypeError"),
-            ErrorType::UndefFunc => write!(fmt, "UndefFunc"),
-            ErrorType::UndefVar => write!(fmt, "UndefVarError"),
+            ErrorType::UndefinedFunction => write!(fmt, "UndefinedFunctionError"),
+            ErrorType::UndefinedVariable => write!(fmt, "UndefinedVariableError"),
         }
     }
 }

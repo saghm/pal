@@ -8,6 +8,8 @@ use self::bin_exp::{arith_exp, bool_exp, eq_exp, ineq_exp};
 use error::{Error, Result};
 use state::State;
 
+use stepper::Stepper;
+
 impl Statement {
     pub fn eval(&self, state: &mut State) -> Result<Option<Value>> {
         match *self {
@@ -256,6 +258,72 @@ impl Expr {
                     _ => Error::type_error(
                         &format!("`{}` is not a boolean, so `!{}` doesn't make sense", exp, exp)),
                 }
+            }
+            Expr::Range(ref start, ref end) => {
+                let start_int = match try!(start.eval(state)) {
+                    Value::Int(i) => i,
+                    _ => return Error::type_error(
+                        &format!("`{}` is not a int, so `{}` doesn't make sense", start, self)),
+                };
+
+                let end_int = match try!(end.eval(state)) {
+                    Value::Int(i) => i,
+                    _ => return Error::type_error(
+                        &format!("`{}` is not a int, so `{}` doesn't make sense", end, self)),
+                };
+
+                // `stepper` ranges are not end-inclusive.
+                let (fixed_end, step_int) = if end_int >= start_int {
+                    (end_int + 1, 1)
+                } else {
+                    (end_int - 1, -1)
+                };
+
+                let vec: Vec<_> = step!(start_int => fixed_end; step_int).into_iter().map(|i| Value::Int(i)).collect();
+                Ok(Value::Array(vec))
+            }
+            Expr::Step(ref start, ref end, ref step) => {
+                let start_int = match try!(start.eval(state)) {
+                    Value::Int(i) => i,
+                    _ => return Error::type_error(
+                        &format!("`{}` is not a int, so `{}` doesn't make sense", start, self)),
+                };
+
+                let end_int = match try!(end.eval(state)) {
+                    Value::Int(i) => i,
+                    _ => return Error::type_error(
+                        &format!("`{}` is not a int, so `{}` doesn't make sense", end, self)),
+                };
+
+                let step_int = match try!(step.eval(state)) {
+                    Value::Int(i) => i,
+                    _ => return Error::type_error(
+                        &format!("`{}` is not a int, so `{}` doesn't make sense", step, self)),
+                };
+
+                if start_int < end_int && step_int < 0 {
+                    return Error::step_error(
+                        &format!("`{}` = {}, `{}` = {}, and `{}` = {}; stepping down from {} will never reach {}",
+                            start, start_int, end, end_int, step, step_int, start_int, end_int));
+                }
+
+                if start_int > end_int && step_int > 0 {
+                    return Error::step_error(
+                        &format!("`{}` = {}, `{}` = {}, and `{}` = {}; stepping up from {} will never reach {}",
+                            start, start_int, end, end_int, step, step_int, start_int, end_int));
+                }
+
+                if step_int == 0 {
+                    return Error::step_error(
+                        &format!("`{}` = {}, `{}` = {}, and `{}` = {}; stepping by 0 will never get anywhere",
+                            start, start_int, end, end_int, step, step_int));
+                }
+
+                // `stepper` ranges are not end-inclusive.
+                let fixed_end = end_int + step_int.signum();
+
+                let vec: Vec<_> = step!(start_int => fixed_end; step_int).into_iter().map(|i| Value::Int(i)).collect();
+                Ok(Value::Array(vec))
             }
             Expr::Value(ref val) => Ok(val.clone()),
             Expr::Var(ref var) => {

@@ -110,6 +110,8 @@ NotExp: Expr = {
 };
 
 Call: Expr = {
+    "range" "(" <start:Exp> "," <end:Exp> ")" => Expr::Range(Box::new(start), Box::new(end)),
+    "step" "(" <start:Exp> "," <end:Exp> "," <by:Exp> ")" => Expr::Step(Box::new(start), Box::new(end), Box::new(by)),
     <Ident> <ParenList<Exp>> => Expr::Call(<>),
     Term,
 };
@@ -163,6 +165,8 @@ extern {
         "int" => Token::Int,
         "string" => Token::Str,
         "void" => Token::Void,
+        "range" => Token::Range,
+        "step" => Token::Step,
         "!" => Token::Bang,
         "&&" => Token::DoubleAmp,
         "||" => Token::DoubleBars,

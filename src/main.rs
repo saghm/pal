@@ -1,5 +1,6 @@
 extern crate rl_sys;
 extern crate lalrpop_util;
+#[macro_use] extern crate stepper;
 extern crate unicode_xid;
 
 #[macro_use]

@@ -32,6 +32,10 @@ impl Error {
         Err(Self::new(ErrorType::RedefinedFunction, s))
     }
 
+    pub fn step_error<T>(s: &str) -> Result<T> {
+        Err(Self::new(ErrorType::Step, s))
+    }
+
     pub fn type_error<T>(s: &str) -> Result<T> {
         Err(Self::new(ErrorType::Type, s))
     }
@@ -50,6 +54,7 @@ pub enum ErrorType {
     Argument,
     ArrayIndexOutOfBounds,
     RedefinedFunction,
+    Step,
     Type,
     UndefinedFunction,
     UndefinedVariable,
@@ -61,6 +66,7 @@ impl fmt::Display for ErrorType {
             ErrorType::Argument => write!(fmt, "ArgumentError"),
             ErrorType::ArrayIndexOutOfBounds => write!(fmt, "ArrayIndexOutOfBoundsError"),
             ErrorType::RedefinedFunction => write!(fmt, "RedefinedFunctionError"),
+            ErrorType::Step => write!(fmt, "StepError"),
             ErrorType::Type => write!(fmt, "TypeError"),
             ErrorType::UndefinedFunction => write!(fmt, "UndefinedFunctionError"),
             ErrorType::UndefinedVariable => write!(fmt, "UndefinedVariableError"),

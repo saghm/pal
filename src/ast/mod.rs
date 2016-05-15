@@ -251,7 +251,6 @@ impl fmt::Display for Expr {
 #[derive(Clone, Debug)]
 pub enum Statement {
     ArrayElemAssign(String, Expr, Vec<Expr>, Expr),
-    VarAssign(String, Expr),
     Defun(Type, String, Vec<String>, Vec<Statement>),
     If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
@@ -259,6 +258,7 @@ pub enum Statement {
     Return(Expr),
     VoidCall(String, Vec<Expr>),
     While(Expr, Vec<Statement>),
+    VarAssign(String, Expr),
 }
 
 impl Statement {

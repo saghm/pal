@@ -34,6 +34,8 @@ pub enum Token<'input> {
     Else,
     While,
     Return,
+    For,
+    In,
 
     // Types
     Array,
@@ -271,6 +273,8 @@ impl <'input> Tokenizer<'input> {
             "string" => (start, Str, end),
             "void" => (start, Void, end),
             "return" => (start, Return, end),
+            "for" => (start, For, end),
+            "in" => (start, In, end),
             _ => (start, Ident(word), end),
         }
     }

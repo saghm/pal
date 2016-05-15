@@ -77,6 +77,24 @@ impl Statement {
             }
             Statement::Defun(ref t, ref name, ref params, ref body) =>
                 state.define_func(t, name, params, body).map(|_| None),
+            Statement::For(ref var, ref exp, ref block) => {
+                let val = try!(exp.eval(state));
+                let vec = match val {
+                    Value::Array(vec) => vec,
+                    _ => return Error::type_error(
+                        &format!("`{}` is {}, so `for {} in {} ...` doesn't make sense", exp, val.type_string_with_article(), var, exp)),
+                };
+
+                for array_val in vec {
+                    state.define_var(var, array_val);
+
+                    for stmt in block {
+                        try!(stmt.eval(state));
+                    }
+                }
+
+                Ok(None)
+            }
             Statement::If(ref exp, ref block1, ref block2) => {
                 let val = try!(exp.eval(state));
                 let block = match val {

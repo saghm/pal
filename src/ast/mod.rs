@@ -251,6 +251,7 @@ impl fmt::Display for Expr {
 #[derive(Clone, Debug)]
 pub enum Statement {
     ArrayElemAssign(String, Expr, Vec<Expr>, Expr),
+    For(String, Expr, Vec<Statement>),
     Defun(Type, String, Vec<String>, Vec<Statement>),
     If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
@@ -293,6 +294,15 @@ impl Statement {
 
                 // Write the function body statements with one more level of indentation
                 for stmt in body.iter() {
+                    try!(stmt.fmt_with_indent(fmt, indent_level + 1));
+                }
+
+                writeln!(fmt, "{}}}", indentation)
+            }
+            Statement::For(ref var, ref exp, ref block) => {
+                try!(writeln!(fmt, "{}for {} in {} {{", indentation, var, exp));
+
+                for stmt in block.iter() {
                     try!(stmt.fmt_with_indent(fmt, indent_level + 1));
                 }
 

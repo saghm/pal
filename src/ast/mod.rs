@@ -275,7 +275,7 @@ impl Statement {
                     try!(write!(fmt, "[{}]", i));
                 }
 
-                write!(fmt, " = {};", exp)
+                writeln!(fmt, " = {};", exp)
             }
             Statement::Defun(ref return_type, ref name, ref params, ref body) => {
                 try!(write!(fmt, "{}{} {}(", indentation, return_type, name));

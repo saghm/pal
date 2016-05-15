@@ -31,10 +31,6 @@ macro_rules! var {
 
 // Statements -------------------------------------------------------------------------------------
 
-macro_rules! stmt_assign {
-    ($var:ident, $exp:expr) => (Statement::Assign(stringify_from!($var), $exp))
-}
-
 macro_rules! stmt_defun {
     ($ty:expr, $name:ident ($($param:ident),*) { $($stmt:expr);* }) =>
         (Statement::Defun($ty, stringify_from!($name), vec![$(stringify_from!($param)),*], vec![$($stmt),*]))
@@ -66,6 +62,10 @@ macro_rules! stmt_if {
 
 macro_rules! stmt_let {
     ($var:ident, $exp:expr) => (Statement::Let(stringify_from!($var), $exp))
+}
+
+macro_rules! stmt_var_assign {
+    ($var:ident, $exp:expr) => (Statement::VarAssign(stringify_from!($var), $exp))
 }
 
 macro_rules! stmt_void_call {

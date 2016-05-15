@@ -39,8 +39,8 @@ fn display_bool_expr() {
 fn complex() {
     let stmt = stmt_defun!(Type::Void, range(i) {
         stmt_while!(bin_exp!(var!(i), GreaterOrEqual, int!(0)), {
-            stmt_assign!(total, bin_exp!(var!(total), Plus, call!(sum3(var!(i), bin_exp!(var!(i), Plus, int!(1)), bin_exp!(var!(i), Plus, int!(2))))));
-            stmt_assign!(i, bin_exp!(var!(i), Minus, int!(1)))
+            stmt_var_assign!(total, bin_exp!(var!(total), Plus, call!(sum3(var!(i), bin_exp!(var!(i), Plus, int!(1)), bin_exp!(var!(i), Plus, int!(2))))));
+            stmt_var_assign!(i, bin_exp!(var!(i), Minus, int!(1)))
         })
     });
 

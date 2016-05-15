@@ -24,6 +24,10 @@ impl Error {
         Err(Self::new(ErrorType::Argument, s))
     }
 
+    pub fn array_index_out_of_bounds_error<T>(s: &str) -> Result<T> {
+        Err(Self::new(ErrorType::ArrayIndexOutOfBounds, s))
+    }
+
     pub fn redef_func_error<T>(s: &str) -> Result<T> {
         Err(Self::new(ErrorType::RedefinedFunction, s))
     }
@@ -44,6 +48,7 @@ impl Error {
 #[derive(Debug)]
 pub enum ErrorType {
     Argument,
+    ArrayIndexOutOfBounds,
     RedefinedFunction,
     Type,
     UndefinedFunction,
@@ -54,6 +59,7 @@ impl fmt::Display for ErrorType {
     fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ErrorType::Argument => write!(fmt, "ArgumentError"),
+            ErrorType::ArrayIndexOutOfBounds => write!(fmt, "ArrayIndexOutOfBoundsError"),
             ErrorType::RedefinedFunction => write!(fmt, "RedefinedFunctionError"),
             ErrorType::Type => write!(fmt, "TypeError"),
             ErrorType::UndefinedFunction => write!(fmt, "UndefinedFunctionError"),

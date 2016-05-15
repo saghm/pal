@@ -13,7 +13,7 @@ fn arith() {
 
     let stmt1 = stmt_let!(x, int!(-12));
     let stmt2 = stmt_let!(y, bin_exp!(var!(x), Divide, int!(-4)));
-    let stmt3 = stmt_assign!(x, bin_exp!(var!(x), Times, var!(y)));
+    let stmt3 = stmt_var_assign!(x, bin_exp!(var!(x), Times, var!(y)));
 
     let mut state = State::new();
     stmt1.eval(&mut state).unwrap();
@@ -35,7 +35,7 @@ fn bool() {
 
     let stmt1 = stmt_let!(x, int!(-12));
     let stmt2 = stmt_let!(y, bin_exp!(var!(x), GreaterThan, int!(-4)));
-    let stmt3 = stmt_assign!(x, bin_exp!(boolean!(true), Or, var!(y)));
+    let stmt3 = stmt_var_assign!(x, bin_exp!(boolean!(true), Or, var!(y)));
 
     let mut state = State::new();
     stmt1.eval(&mut state).unwrap();
@@ -60,7 +60,7 @@ fn if_true() {
      let stmt1 = stmt_let!(x, boolean!(true));
      let stmt2 = stmt_let!(y, int!(-1));
      let stmt3 = stmt_if!((bin_exp!(var!(x), Or, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
      });
 
      let mut state = State::new();
@@ -86,7 +86,7 @@ fn if_false() {
      let stmt1 = stmt_let!(x, boolean!(true));
      let stmt2 = stmt_let!(y, int!(-1));
      let stmt3 = stmt_if!((bin_exp!(var!(x), And, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
      });
 
      let mut state = State::new();
@@ -114,9 +114,9 @@ fn if_true_else() {
     let stmt1 = stmt_let!(x, boolean!(true));
     let stmt2 = stmt_let!(y, int!(-1));
     let stmt3 = stmt_if!((bin_exp!(var!(x), Or, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
     } els {
-        stmt_assign!(y, int!(2))
+        stmt_var_assign!(y, int!(2))
     });
 
      let mut state = State::new();
@@ -144,9 +144,9 @@ fn if_false_else() {
     let stmt1 = stmt_let!(x, boolean!(true));
     let stmt2 = stmt_let!(y, int!(-1));
     let stmt3 = stmt_if!((bin_exp!(var!(x), And, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
     } els {
-        stmt_assign!(y, int!(2))
+        stmt_var_assign!(y, int!(2))
     });
 
      let mut state = State::new();
@@ -176,11 +176,11 @@ fn if_true_else_if2() {
     let stmt1 = stmt_let!(x, boolean!(true));
     let stmt2 = stmt_let!(y, int!(-1));
     let stmt3 = stmt_if!((bin_exp!(var!(x), Or, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
     } elsif (bin_exp!(var!(x), And, boolean!(false))) {
-        stmt_assign!(y, int!(2))
+        stmt_var_assign!(y, int!(2))
     } elsif (var!(x)) {
-        stmt_assign!(y, int!(3))
+        stmt_var_assign!(y, int!(3))
     });
 
     let mut state = State::new();
@@ -210,11 +210,11 @@ fn if_false_else_if_true_else_if() {
     let stmt1 = stmt_let!(x, boolean!(true));
     let stmt2 = stmt_let!(y, int!(-1));
     let stmt3 = stmt_if!((bin_exp!(var!(x), And, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
     } elsif (bin_exp!(var!(x), Or, boolean!(false))) {
-        stmt_assign!(y, int!(2))
+        stmt_var_assign!(y, int!(2))
     } elsif (var!(x)) {
-        stmt_assign!(y, int!(3))
+        stmt_var_assign!(y, int!(3))
     });
 
     let mut state = State::new();
@@ -245,11 +245,11 @@ fn if_false_else_if_false_else_if_true() {
     let stmt1 = stmt_let!(x, boolean!(true));
     let stmt2 = stmt_let!(y, int!(-1));
     let stmt3 = stmt_if!((bin_exp!(var!(x), And, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
     } elsif (bin_exp!(not!(var!(x)), Or, boolean!(false))) {
-        stmt_assign!(y, int!(2))
+        stmt_var_assign!(y, int!(2))
     } elsif (var!(x)) {
-        stmt_assign!(y, int!(3))
+        stmt_var_assign!(y, int!(3))
     });
 
     let mut state = State::new();
@@ -281,13 +281,13 @@ fn if_true_else_if2_else() {
     let stmt1 = stmt_let!(x, boolean!(true));
     let stmt2 = stmt_let!(y, int!(-1));
     let stmt3 = stmt_if!((bin_exp!(var!(x), Or, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
     } elsif (bin_exp!(var!(x), And, boolean!(false))) {
-        stmt_assign!(y, int!(2))
+        stmt_var_assign!(y, int!(2))
     } elsif (var!(x)) {
-        stmt_assign!(y, int!(3))
+        stmt_var_assign!(y, int!(3))
     } els {
-        stmt_assign!(y, int!(4))
+        stmt_var_assign!(y, int!(4))
     });
 
     let mut state = State::new();
@@ -319,13 +319,13 @@ fn if_false_else_if2_true_else() {
     let stmt1 = stmt_let!(x, boolean!(true));
     let stmt2 = stmt_let!(y, int!(-1));
     let stmt3 = stmt_if!((bin_exp!(var!(x), And, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
     } elsif (bin_exp!(var!(x), Or, boolean!(false))) {
-        stmt_assign!(y, int!(2))
+        stmt_var_assign!(y, int!(2))
     } elsif (var!(x)) {
-        stmt_assign!(y, int!(3))
+        stmt_var_assign!(y, int!(3))
     } els {
-        stmt_assign!(y, int!(4))
+        stmt_var_assign!(y, int!(4))
     });
 
     let mut state = State::new();
@@ -357,13 +357,13 @@ fn if_false_else_if2_false_else_true() {
     let stmt1 = stmt_let!(x, boolean!(false));
     let stmt2 = stmt_let!(y, int!(-1));
     let stmt3 = stmt_if!((bin_exp!(var!(x), And, boolean!(false))) {
-        stmt_assign!(y, int!(1))
+        stmt_var_assign!(y, int!(1))
     } elsif (bin_exp!(var!(x), Or, boolean!(false))) {
-        stmt_assign!(y, int!(2))
+        stmt_var_assign!(y, int!(2))
     } elsif (var!(x)) {
-        stmt_assign!(y, int!(3))
+        stmt_var_assign!(y, int!(3))
     } els {
-        stmt_assign!(y, int!(4))
+        stmt_var_assign!(y, int!(4))
     });
 
     let mut state = State::new();
@@ -403,8 +403,8 @@ fn complex() {
 
     let range = stmt_defun!(Type::Void, range(i) {
         stmt_while!(bin_exp!(var!(i), GreaterOrEqual, int!(0)), {
-            stmt_assign!(total, bin_exp!(var!(total), Plus, call!(sum3(var!(i), bin_exp!(var!(i), Plus, int!(1)), bin_exp!(var!(i), Plus, int!(2))))));
-            stmt_assign!(i, bin_exp!(var!(i), Minus, int!(1)))
+            stmt_var_assign!(total, bin_exp!(var!(total), Plus, call!(sum3(var!(i), bin_exp!(var!(i), Plus, int!(1)), bin_exp!(var!(i), Plus, int!(2))))));
+            stmt_var_assign!(i, bin_exp!(var!(i), Minus, int!(1)))
         })
     });
 

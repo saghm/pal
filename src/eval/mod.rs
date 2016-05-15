@@ -11,9 +11,69 @@ use state::State;
 impl Statement {
     pub fn eval(&self, state: &mut State) -> Result<Option<Value>> {
         match *self {
-            Statement::Assign(ref var, ref exp) => {
-                let val = try!(exp.eval(state));
-                state.assign(var, val).map(|_| None)
+            Statement::ArrayElemAssign(ref var, ref index, ref indexes, ref exp) => {
+                let mut array_vec = match state.lookup(var) {
+                    Some(&Value::Array(ref vec)) => vec.clone(),
+                    Some(ref val) => return Error::type_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense", var, val.type_string_with_article(), self)),
+                    None => return Error::undef_var_error(
+                        &format!("The variable `{}` is not defined, so {} doesn't make sense", var, self)),
+                };
+
+                let index_val = try!(index.eval(state));
+                let mut index_int = match index_val {
+                    Value::Int(i) => i,
+                    _ => return Error::type_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense", var, index_val.type_string_with_article(), self))
+                };
+
+                if index_int < 0 {
+                    return Error::array_index_out_of_bounds_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense",
+                        index, index_int, self))
+                }
+
+                if index_int as usize >= array_vec.len() {
+                    return Error::array_index_out_of_bounds_error(
+                        &format!("`{}` has {} elements in it, so `{}` doesn't make sense",
+                        var, array_vec.len(), self))
+                }
+
+                let mut repr = format!("{}[{}]", var, index);
+
+                for idx in indexes {
+                    repr.push_str(&format!("[{}]", idx));
+
+                    array_vec = match array_vec[index_int as usize] {
+                        Value::Array(ref vec) => vec.clone(),
+                        ref val => return Error::type_error(
+                            &format!("`{}` is {}, so `{}` doesn't make sense", repr, val.type_string_with_article(), self)),
+                    };
+
+                    let index_val = try!(idx.eval(state));
+
+                    index_int = match index_val {
+                        Value::Int(i) => i,
+                        _ => return Error::type_error(
+                            &format!("`{}` is {}, so `{}` doesn't make sense", var, index_val.type_string_with_article(), self))
+                    };
+
+                    if index_int < 0 {
+                        return Error::array_index_out_of_bounds_error(
+                            &format!("`{}` is {}, so `{}` doesn't make sense",
+                            index, index_int, self))
+                    }
+
+                    if index_int as usize >= array_vec.len() {
+                        return Error::array_index_out_of_bounds_error(
+                            &format!("`{}` has {} elements in it, so `{}` doesn't make sense",
+                            var, array_vec.len(), self))
+                    }
+                }
+
+                let exp_val = try!(exp.eval(state));
+                array_vec[index_int as usize] = exp_val;
+                state.assign(var, Value::Array(array_vec)).map(|_| None)
             }
             Statement::Defun(ref t, ref name, ref params, ref body) =>
                 state.define_func(t, name, params, body).map(|_| None),
@@ -44,6 +104,10 @@ impl Statement {
                 Ok(None)
             }
             Statement::Return(ref exp) => exp.eval(state).map(Some),
+            Statement::VarAssign(ref var, ref exp) => {
+                let val = try!(exp.eval(state));
+                state.assign(var, val).map(|_| None)
+            }
             Statement::VoidCall(ref name, ref args) => state.call_function(name, args).map(|_| None),
             Statement::While(ref exp, ref block) => {
                 let val = try!(exp.eval(state));
@@ -69,6 +133,77 @@ impl Statement {
 impl Expr {
     pub fn eval(&self, state: &mut State) -> Result<Value> {
         match *self {
+            Expr::Array(ref vec) => {
+                let mut out = Vec::new();
+
+                for ref exp in vec {
+                    out.push(try!(exp.eval(state)));
+                }
+
+                Ok(Value::Array(out))
+            }
+            Expr::ArrayElement(ref var, ref index, ref indexes) => {
+                let mut array_vec = match state.lookup(var) {
+                    Some(&Value::Array(ref vec)) => vec.clone(),
+                    Some(ref val) => return Error::type_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense", var, val.type_string_with_article(), self)),
+                    None => return Error::undef_var_error(
+                        &format!("The variable `{}` is not defined, so {} doesn't make sense", var, self)),
+                };
+
+                let index_val = try!(index.eval(state));
+                let mut index_int = match index_val {
+                    Value::Int(i) => i,
+                    _ => return Error::type_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense", var, index_val.type_string_with_article(), self))
+                };
+
+                if index_int < 0 {
+                    return Error::array_index_out_of_bounds_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense",
+                        index, index_int, self))
+                }
+
+                if index_int as usize >= array_vec.len() {
+                    return Error::array_index_out_of_bounds_error(
+                        &format!("`{}` has {} elements in it, so `{}` doesn't make sense",
+                        var, array_vec.len(), self))
+                }
+
+                let mut repr = format!("{}[{}]", var, index);
+
+                for idx in indexes {
+                    repr.push_str(&format!("[{}]", idx));
+
+                    array_vec = match array_vec[index_int as usize] {
+                        Value::Array(ref vec) => vec.clone(),
+                        ref val => return Error::type_error(
+                            &format!("`{}` is {}, so `{}` doesn't make sense", repr, val.type_string_with_article(), self)),
+                    };
+
+                    let index_val = try!(idx.eval(state));
+
+                    index_int = match index_val {
+                        Value::Int(i) => i,
+                        _ => return Error::type_error(
+                            &format!("`{}` is {}, so `{}` doesn't make sense", var, index_val.type_string_with_article(), self))
+                    };
+
+                    if index_int < 0 {
+                        return Error::array_index_out_of_bounds_error(
+                            &format!("`{}` is {}, so `{}` doesn't make sense",
+                            index, index_int, self))
+                    }
+
+                    if index_int as usize >= array_vec.len() {
+                        return Error::array_index_out_of_bounds_error(
+                            &format!("`{}` has {} elements in it, so `{}` doesn't make sense",
+                            var, array_vec.len(), self))
+                    }
+                }
+
+                Ok(array_vec[index_int as usize].clone())
+            }
             Expr::BinExp(ref exp1, ref op, ref exp2) => {
                 let val1 = try!(exp1.eval(state));
                 let val2 = try!(exp2.eval(state));

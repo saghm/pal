@@ -5,6 +5,7 @@ use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
+    Array,
     Bool,
     Int,
     Str,
@@ -15,6 +16,7 @@ impl Type {
     pub fn as_string_with_article(&self) -> &str {
         // Returns the name of the type with the correct English indefinite article prepended.
         match *self {
+            Type::Array => "an array",
             Type::Bool => "a boolean",
             Type::Int => "an int",
             Type::Str => "a string",
@@ -26,6 +28,7 @@ impl Type {
 impl fmt::Display for Type {
     fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Type::Array => write!(fmt, "array"),
             Type::Bool => write!(fmt, "boolean"),
             Type::Int => write!(fmt, "int"),
             Type::Str => write!(fmt, "string"),
@@ -37,6 +40,7 @@ impl fmt::Display for Type {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Value {
+    Array(Vec<Value>),
     Bool(bool),
     Int(i64),
     Str(String),
@@ -46,6 +50,7 @@ impl Value {
     // Returns the value's type with the correct English indefinite article prepended.
     pub fn type_string_with_article(&self) -> &str {
         match *self {
+            Value::Array(_) => "an array",
             Value::Bool(_) => "a boolean",
             Value::Int(_) => "an int",
             Value::Str(_) => "a string",
@@ -55,6 +60,7 @@ impl Value {
     // Checks whether the value is of a certain type.
     pub fn is_a(&self, t: &Type) -> bool {
         match (self, t) {
+            (&Value::Array(_), &Type::Array) |
             (&Value::Bool(_), &Type::Bool) |
             (&Value::Int(_), &Type::Int) |
             (&Value::Str(_), &Type::Str) => true,
@@ -66,6 +72,19 @@ impl Value {
 impl fmt::Display for Value {
     fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Value::Array(ref vec) => {
+                try!(write!(fmt, "["));
+
+                for (i, val) in vec.iter().enumerate() {
+                    if i != 0 {
+                        try!(write!(fmt, ", "));
+                    }
+
+                    try!(write!(fmt, "{}", val));
+                }
+
+                write!(fmt, "]")
+            }
             Value::Bool(b) => write!(fmt, "{}", b),
             Value::Int(i) => write!(fmt, "{}", i),
             Value::Str(ref s) => write!(fmt, "{}", s),
@@ -145,6 +164,8 @@ impl fmt::Display for BinOp {
 
 #[derive(Clone, Debug)]
 pub enum Expr {
+    Array(Vec<Expr>),
+    ArrayElement(String, Box<Expr>, Vec<Expr>),
     BinExp(Box<Expr>, BinOp, Box<Expr>),
     Call(String, Vec<Expr>),
     Not(Box<Expr>),
@@ -165,6 +186,28 @@ impl Expr {
 impl fmt::Display for Expr {
     fn fmt(&self, mut fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Expr::Array(ref vec) => {
+                try!(write!(fmt, "["));
+
+                for (i, val) in vec.iter().enumerate() {
+                    if i != 0 {
+                        try!(write!(fmt, ", "));
+                    }
+
+                    try!(write!(fmt, "{}", val));
+                }
+
+                write!(fmt, "]")
+            }
+            Expr::ArrayElement(ref var, ref index, ref indexes) => {
+                try!(write!(fmt, "{}[{}]", var, index));
+
+                for i in indexes.iter() {
+                    try!(write!(fmt, "[{}]", i));
+                }
+
+                Ok(())
+            }
             Expr::BinExp(ref exp1, ref op, ref exp2) => {
                 let op_precendence = op.precedence();
 
@@ -207,7 +250,8 @@ impl fmt::Display for Expr {
 
 #[derive(Clone, Debug)]
 pub enum Statement {
-    Assign(String, Expr),
+    ArrayElemAssign(String, Expr, Vec<Expr>, Expr),
+    VarAssign(String, Expr),
     Defun(Type, String, Vec<String>, Vec<Statement>),
     If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
@@ -224,7 +268,15 @@ impl Statement {
         let indentation : String = (0..indent_level * 4).map(|_| " ").collect();
 
         match *self {
-            Statement::Assign(ref var, ref exp) => writeln!(fmt, "{}{} = {};", indentation, var, exp),
+            Statement::ArrayElemAssign(ref var, ref index, ref indexes, ref exp) => {
+                try!(write!(fmt, "{}{}[{}]", indentation, var, index));
+
+                for i in indexes.iter() {
+                    try!(write!(fmt, "[{}]", i));
+                }
+
+                write!(fmt, " = {};", exp)
+            }
             Statement::Defun(ref return_type, ref name, ref params, ref body) => {
                 try!(write!(fmt, "{}{} {}(", indentation, return_type, name));
 
@@ -271,6 +323,7 @@ impl Statement {
             Statement::Let(ref var, ref exp) => writeln!(fmt, "{}let {} = {};", indentation, var, exp),
             Statement::Print(ref exp) => writeln!(fmt, "{}print {};", indentation, exp),
             Statement::Return(ref exp) => writeln!(fmt, "{}return {};", indentation, exp),
+            Statement::VarAssign(ref var, ref exp) => writeln!(fmt, "{}{} = {};", indentation, var, exp),
             Statement::VoidCall(ref name, ref args) => {
                 try!(write!(fmt, "{}{}(", indentation, name));
 

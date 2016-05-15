@@ -19,7 +19,8 @@ pub fn eq_exp<F>(exp: &Expr, val1: Value, val2: Value, func: F) -> Result<Value>
     match (&val1, &val2) {
         (&Value::Bool(_), &Value::Bool(_)) |
         (&Value::Int(_), &Value::Int(_)) |
-        (&Value::Str(_), &Value::Str(_)) => Ok(Value::Bool(func(val1, val2))),
+        (&Value::Str(_), &Value::Str(_)) |
+        (&Value::Array(_), &Value::Array(_)) => Ok(Value::Bool(func(val1, val2))),
         _ => Error::type_error(
             &format!("`{}` is {} and `{}` is {}, so `{}` doesn't make sense",
                      val1, val1.type_string_with_article(), val2, val2.type_string_with_article(), exp)),

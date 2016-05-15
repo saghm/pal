@@ -36,6 +36,7 @@ pub enum Token<'input> {
     Return,
 
     // Types
+    Array,
     Boolean,
     Int,
     Str,
@@ -61,6 +62,8 @@ pub enum Token<'input> {
     RightParen,
     LeftBrace,
     RightBrace,
+    LeftBracket,
+    RightBracket,
 }
 
 pub struct Tokenizer<'input> {
@@ -188,6 +191,14 @@ impl <'input> Tokenizer<'input> {
                     self.bump();
                     Some(self.string_literal(idx0))
                 }
+                Some((idx0, '[')) => {
+                    self.bump();
+                    Some(Ok((idx0, LeftBracket, idx0 + 1)))
+                }
+                Some((idx0, ']')) => {
+                    self.bump();
+                    Some(Ok((idx0, RightBracket, idx0 + 1)))
+                }
 
                 // Number
                 Some((idx0, c)) if c.is_digit(10) => Some(Ok(self.num(idx0))),
@@ -254,6 +265,7 @@ impl <'input> Tokenizer<'input> {
             "if" => (start, If, end),
             "else" => (start, Else, end),
             "while" => (start, While, end),
+            "array" => (start, Array, end),
             "boolean" => (start, Boolean, end),
             "int" => (start, Int, end),
             "string" => (start, Str, end),

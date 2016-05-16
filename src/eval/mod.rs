@@ -279,7 +279,7 @@ impl Expr {
                     (end_int - 1, -1)
                 };
 
-                let vec: Vec<_> = step!(start_int => fixed_end; step_int).into_iter().map(|i| Value::Int(i)).collect();
+                let vec: Vec<_> = step!(start_int => fixed_end; step_int).into_iter().map(Value::Int).collect();
                 Ok(Value::Array(vec))
             }
             Expr::Step(ref start, ref end, ref step) => {
@@ -322,7 +322,7 @@ impl Expr {
                 // `stepper` ranges are not end-inclusive.
                 let fixed_end = end_int + step_int.signum();
 
-                let vec: Vec<_> = step!(start_int => fixed_end; step_int).into_iter().map(|i| Value::Int(i)).collect();
+                let vec: Vec<_> = step!(start_int => fixed_end; step_int).into_iter().map(Value::Int).collect();
                 Ok(Value::Array(vec))
             }
             Expr::Value(ref val) => Ok(val.clone()),

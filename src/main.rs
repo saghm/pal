@@ -1,4 +1,4 @@
-extern crate rl_sys;
+ extern crate rl_sys;
 extern crate lalrpop_util;
 #[macro_use] extern crate stepper;
 extern crate unicode_xid;
@@ -14,17 +14,31 @@ mod parser;
 mod token;
 mod state;
 
-use std::fs::OpenOptions;
-use std::io::{self, Write};
+use std::env;
+use std::fs::{File, OpenOptions};
+use std::io::{self, Read, Write};
 use std::path::Path;
 
-use parser::parse_stmt;
+use parser::{parse_program, parse_stmt};
 use state::State;
 
 use rl_sys::readline;
 use rl_sys::history::{histfile, listmgmt};
 
-fn main() {
+fn run_file(file_name: &str) {
+    let mut file = File::open(file_name).expect("Unable to open file");
+    let mut program_str = String::new();
+
+    file.read_to_string(&mut program_str).expect("Unable to read file");
+    let program = parse_program(&program_str).unwrap();
+    let mut state = State::new();
+
+    for stmt in program {
+        stmt.eval(&mut state).unwrap();
+    }
+}
+
+fn repl() {
     let mut state = State::new();
     let mut stderr = io::stderr();
 
@@ -54,4 +68,14 @@ fn main() {
     }
 
     println!("");
+}
+
+fn main() {
+    let mut args = env::args();
+    let _ = args.next();
+
+    match args.next() {
+        Some(arg) => run_file(&arg),
+        None => repl(),
+    }
 }

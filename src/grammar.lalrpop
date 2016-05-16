@@ -27,6 +27,8 @@ ParenList<T>: Vec<T> = "(" <List<T>?> ")" => <>.unwrap_or(Vec::new());
 
 // Statements -------------------------------------------------------------------------------------
 
+pub Program = Stmt+;
+
 pub Stmt: Statement = {
     SimpleStmt,
     <Type> <Ident> <Params> <Block> => Statement::Defun(<>),

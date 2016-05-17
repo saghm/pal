@@ -168,6 +168,7 @@ pub enum Expr {
     ArrayElement(String, Box<Expr>, Vec<Expr>),
     BinExp(Box<Expr>, BinOp, Box<Expr>),
     Call(String, Vec<Expr>),
+    Length(Box<Expr>),
     Not(Box<Expr>),
     Range(Box<Expr>, Box<Expr>),
     Step(Box<Expr>, Box<Expr>, Box<Expr>),
@@ -243,6 +244,7 @@ impl fmt::Display for Expr {
 
                 write!(fmt, ")")
             }
+            Expr::Length(ref exp) => write!(fmt, "length({})", exp),
             Expr::Not(ref exp) => write!(fmt, "!{}", exp),
             Expr::Range(ref start, ref end) => write!(fmt, "range({}, {})", start, end),
             Expr::Step(ref start, ref end, ref step) => write!(fmt, "step({}, {}, {})", start, end, step),

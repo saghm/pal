@@ -252,6 +252,16 @@ impl Expr {
                     Err(e) => Err(e),
                 }
             }
+            Expr::Length(ref exp) => {
+                let val = try!(exp.eval(state));
+
+                match val {
+                    Value::Array(ref vec) => Ok(Value::Int(vec.len() as i64)),
+                    Value::Str(ref string) => Ok(Value::Int(string.len() as i64)),
+                    _ => Error::type_error(
+                        &format!("{} is {}, so {} doesn't make sense", exp, val.type_string_with_article(), self))
+                }
+            }
             Expr::Not(ref exp) => {
                 match try!(exp.eval(state)) {
                     Value::Bool(b) => Ok(Value::Bool(!b)),

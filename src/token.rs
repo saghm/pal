@@ -28,16 +28,16 @@ pub enum Token<'input> {
     Ident(&'input str),
 
     // Keywords
+    Else,
+    For,
+    If,
+    In,
     Let,
     Print,
-    If,
-    Else,
-    While,
-    Return,
-    For,
-    In,
     Range,
+    Return,
     Step,
+    While,
 
     // Types
     Array,
@@ -262,23 +262,23 @@ impl <'input> Tokenizer<'input> {
         let (start, word, end) = self.word(idx0);
 
         match word {
+            "else" => (start, Else, end),
+            "for" => (start, For, end),
+            "if" => (start, If, end),
+            "in" => (start, In, end),
             "let" => (start, Let, end),
             "print" => (start, Print, end),
-            "true" => (start, True, end),
-            "false" => (start, False, end),
-            "if" => (start, If, end),
-            "else" => (start, Else, end),
+            "range" => (start, Range, end),
+            "return" => (start, Return, end),
+            "step" => (start, Step, end),
             "while" => (start, While, end),
             "array" => (start, Array, end),
             "boolean" => (start, Boolean, end),
             "int" => (start, Int, end),
             "string" => (start, Str, end),
             "void" => (start, Void, end),
-            "return" => (start, Return, end),
-            "for" => (start, For, end),
-            "in" => (start, In, end),
-            "range" => (start, Range, end),
-            "step" => (start, Step, end),
+            "true" => (start, True, end),
+            "false" => (start, False, end),
             _ => (start, Ident(word), end),
         }
     }

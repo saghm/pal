@@ -262,6 +262,15 @@ impl Expr {
                         &format!("{} is {}, so {} doesn't make sense", exp, val.type_string_with_article(), self))
                 }
             }
+            Expr::Letters(ref exp) => {
+                let val = try!(exp.eval(state));
+
+                match val {
+                    Value::Str(ref string) => Ok(Value::Array(string.chars().map(|c| Value::Str(format!("{}", c))).collect())),
+                    _ => Error::type_error(
+                        &format!("{} is {}, so {} doesn't make sense", exp, val.type_string_with_article(), self))
+                }
+            }
             Expr::Not(ref exp) => {
                 match try!(exp.eval(state)) {
                     Value::Bool(b) => Ok(Value::Bool(!b)),

@@ -5,6 +5,10 @@ macro_rules! stringify_from {
 }
 
 // Expressions ------------------------------------------------------------------------------------
+macro_rules! array {
+    ($($exp:expr),*) => (Expr::Array(vec![$($exp),*]))
+}
+
 macro_rules! bin_exp {
     ($exp1:expr, $op:expr, $exp2:expr) => (Expr::BinExp(Box::new($exp1), $op, Box::new($exp2)))
 }

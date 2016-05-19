@@ -36,7 +36,7 @@ fn display_bool_expr() {
 }
 
 #[test]
-fn complex() {
+fn display_complex_function() {
     let stmt = stmt_defun!(Type::Void, range(i) {
         stmt_while!(bin_exp!(var!(i), GreaterOrEqual, int!(0)), {
             stmt_var_assign!(total, bin_exp!(var!(total), Plus, call!(sum3(var!(i), bin_exp!(var!(i), Plus, int!(1)), bin_exp!(var!(i), Plus, int!(2))))));
@@ -46,4 +46,11 @@ fn complex() {
 
     let string = "void range(i) {\n    while (i >= 0) {\n        total = total + sum3(i, i + 1, i + 2);\n        i = i - 1;\n    }\n}\n";
     assert_eq!(string, format!("{}", stmt));
+}
+
+#[test]
+fn display_array() {
+    let exp = array![int!(-12), boolean!(false), array![var!(y)]];
+
+    assert_eq!("[-12, false, [y]]", format!("{}", exp));
 }

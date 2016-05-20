@@ -3,6 +3,8 @@ mod test;
 
 mod bin_exp;
 
+use std::io::{self, Write};
+
 use ast::{BinOp, Expr, Statement, Value};
 use self::bin_exp::{arith_exp, bool_exp, eq_exp, ineq_exp};
 use error::{Error, Result};
@@ -120,6 +122,11 @@ impl Statement {
                 Ok(None)
             }
             Statement::Print(ref exp) => {
+                print!("{}", try!(exp.eval(state)));
+                io::stdout().flush().unwrap();
+                Ok(None)
+            }
+            Statement::PrintLine(ref exp) => {
                 println!("{}", try!(exp.eval(state)));
                 Ok(None)
             }

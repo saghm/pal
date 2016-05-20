@@ -264,6 +264,7 @@ pub enum Statement {
     If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
     Print(Expr),
+    PrintLine(Expr),
     Return(Expr),
     VoidCall(String, Vec<Expr>),
     While(Expr, Vec<Statement>),
@@ -340,6 +341,7 @@ impl Statement {
             }
             Statement::Let(ref var, ref exp) => writeln!(fmt, "{}let {} = {};", indentation, var, exp),
             Statement::Print(ref exp) => writeln!(fmt, "{}print {};", indentation, exp),
+            Statement::PrintLine(ref exp) => writeln!(fmt, "{}print_line {};", indentation, exp),
             Statement::Return(ref exp) => writeln!(fmt, "{}return {};", indentation, exp),
             Statement::VarAssign(ref var, ref exp) => writeln!(fmt, "{}{} = {};", indentation, var, exp),
             Statement::VoidCall(ref name, ref args) => {

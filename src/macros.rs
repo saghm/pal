@@ -29,6 +29,10 @@ macro_rules! int {
     ($i:expr) => (Expr::Value(Value::Int($i)))
 }
 
+macro_rules! length {
+    ($exp:expr) => (Expr::Length(Box::new($exp)))
+}
+
 macro_rules! not {
     ($exp:expr) => (Expr::Not(Box::new($exp)))
 }

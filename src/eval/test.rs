@@ -86,13 +86,13 @@ fn length_array() {
     let array1 = array![int!(1), boolean!(false), array![string!("hello!"), int!(0)]];
     let array2 = array![];
 
-    let array_length1 = length!(array1);
-    let array_length2 = length!(array2);
+    let length1 = length!(array1);
+    let length2 = length!(array2);
 
     let mut state = State::new();
 
-    assert_eq!(Value::Int(3), array_length1.eval(&mut state).unwrap());
-    assert_eq!(Value::Int(0), array_length2.eval(&mut state).unwrap());
+    assert_eq!(Value::Int(3), length1.eval(&mut state).unwrap());
+    assert_eq!(Value::Int(0), length2.eval(&mut state).unwrap());
 }
 
 #[test]
@@ -107,12 +107,12 @@ fn length_string() {
 #[test]
 fn length_invalid_arg() {
     let bool_length = length!(boolean!(false));
-    let bin_exp_length = length!(bin_exp!(int!(10), Divide, int!(3)));
+    let int_length = length!(bin_exp!(int!(10), Divide, int!(3)));
 
     let mut state = State::new();
 
     assert_eq!(Err(ErrorType::Type), bool_length.eval(&mut state).map_err(|e| e.err_type()));
-    assert_eq!(Err(ErrorType::Type), bin_exp_length.eval(&mut state).map_err(|e| e.err_type()));
+    assert_eq!(Err(ErrorType::Type), int_length.eval(&mut state).map_err(|e| e.err_type()));
 }
 
 #[test]

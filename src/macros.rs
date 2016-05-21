@@ -9,6 +9,9 @@ macro_rules! val_array {
     ($($val:expr),*) => (Value::Array(vec![$($val),*]))
 }
 
+macro_rules! val_int {
+    ($int:expr) => (Value::Int($int))
+}
 
 macro_rules! val_string {
     ($string:expr) => (Value::Str(String::from($string)))
@@ -47,9 +50,12 @@ macro_rules! letters {
     ($exp:expr) => (Expr::Letters(Box::new($exp)))
 }
 
-
 macro_rules! not {
     ($exp:expr) => (Expr::Not(Box::new($exp)))
+}
+
+macro_rules! range {
+    ($start:expr, $end:expr) => (Expr::Range(Box::new($start), Box::new($end)))
 }
 
 macro_rules! string {

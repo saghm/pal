@@ -149,6 +149,49 @@ fn letters_invalid_arg() {
 }
 
 #[test]
+fn empty_range() {
+    let empty_range = range!(int!(7), int!(7));
+    let array = val_array![val_int!(7)];
+
+    let mut state = State::new();
+
+    assert_eq!(array, empty_range.eval(&mut state).unwrap());
+}
+
+#[test]
+fn range_down() {
+    let range_down = range!(int!(7), int!(4));
+    let array = val_array![val_int!(7), val_int!(6), val_int!(5), val_int!(4)];
+
+    let mut state = State::new();
+
+    assert_eq!(array, range_down.eval(&mut state).unwrap());
+}
+
+#[test]
+fn range_up() {
+    let range_up = range!(int!(4), int!(7));
+    let array = val_array![val_int!(4), val_int!(5), val_int!(6), val_int!(7)];
+
+    let mut state = State::new();
+
+    assert_eq!(array, range_up.eval(&mut state).unwrap());
+}
+
+#[test]
+fn range_invalid_args() {
+    let invalid_arg1 = range!(boolean!(true), int!(10));
+    let invalid_arg2 = range!(int!(10), array![int!(6)]);
+    let invalid_args = range!(string!("hello!"), boolean!(false));
+
+    let mut state = State::new();
+
+    assert_eq!(Err(ErrorType::Type), invalid_arg1.eval(&mut state).map_err(|e| e.err_type()));
+    assert_eq!(Err(ErrorType::Type), invalid_arg2.eval(&mut state).map_err(|e| e.err_type()));
+    assert_eq!(Err(ErrorType::Type), invalid_args.eval(&mut state).map_err(|e| e.err_type()));
+}
+
+#[test]
 fn if_true() {
     /*
      * let x = true;

@@ -1,5 +1,5 @@
-use ::ast::*;
-use ::ast::BinOp::*;
+use ast::*;
+use ast::BinOp::*;
 
 #[test]
 fn display_arith_expr() {

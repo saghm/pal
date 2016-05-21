@@ -1,7 +1,7 @@
-use ::ast::*;
-use ::ast::BinOp::*;
+use ast::*;
+use ast::BinOp::*;
 use ast::Statement::*;
-use ::state::State;
+use state::State;
 
 #[test]
 fn arith() {

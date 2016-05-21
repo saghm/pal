@@ -20,6 +20,10 @@ impl Error {
         Error { err: t, message: String::from(s) }
     }
 
+    pub fn err_type(&self) -> ErrorType {
+        self.err.clone()
+    }
+
     pub fn argument_error<T>(s: &str) -> Result<T> {
         Err(Self::new(ErrorType::Argument, s))
     }
@@ -49,7 +53,7 @@ impl Error {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ErrorType {
     Argument,
     ArrayIndexOutOfBounds,

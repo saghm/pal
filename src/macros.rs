@@ -21,12 +21,20 @@ macro_rules! call {
     ($name:ident ($($arg:expr),*)) => (Expr::Call(stringify_from!($name), vec![$($arg),*]))
 }
 
+macro_rules! index {
+    ($array:ident[$index1:expr]$([$index2:expr])*) => (Expr::ArrayElement(stringify_from!($array), Box::new($index1), vec![$($index2),*]))
+}
+
 macro_rules! int {
     ($i:expr) => (Expr::Value(Value::Int($i)))
 }
 
 macro_rules! not {
     ($exp:expr) => (Expr::Not(Box::new($exp)))
+}
+
+macro_rules! string {
+    ($string:expr) => (Expr::Value(Value::Str(String::from($string))))
 }
 
 macro_rules! var {

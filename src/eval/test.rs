@@ -1,6 +1,7 @@
 use ast::*;
 use ast::BinOp::*;
 use ast::Statement::*;
+use error::ErrorType;
 use state::State;
 
 #[test]
@@ -45,6 +46,39 @@ fn bool() {
     assert_eq!(2, state.len());
     assert_eq!(Value::Bool(true), *state.lookup("x").unwrap());
     assert_eq!(Value::Bool(false), *state.lookup("y").unwrap());
+}
+
+#[test]
+fn array_element_access() {
+    // let array = [1, false, ["hello"]];
+    let stmt = stmt_let!(array, array![int!(1), boolean!(false), array![string!("hello!")]]);
+
+    let mut state = State::new();
+    stmt.eval(&mut state).unwrap();
+
+    let index_neg_one = index!(array[int!(-1)]);
+    assert_eq!(Err(ErrorType::ArrayIndexOutOfBounds), index_neg_one.eval(&mut state).map_err(|e| e.err_type()));
+
+    let index_zero = index!(array[int!(0)]);
+    assert_eq!(Value::Int(1), index_zero.eval(&mut state).unwrap());
+
+    let index_one = index!(array[int!(1)]);
+    assert_eq!(Value::Bool(false), index_one.eval(&mut state).unwrap());
+
+    let index_one_zero = index!(array[int!(1)][int!(0)]);
+    assert_eq!(Err(ErrorType::Type), index_one_zero.eval(&mut state).map_err(|e| e.err_type()));
+
+    let index_two_neg_one = index!(array[int!(2)][int!(-1)]);
+    assert_eq!(Err(ErrorType::ArrayIndexOutOfBounds), index_two_neg_one.eval(&mut state).map_err(|e| e.err_type()));
+
+    let index_two_zero = index!(array[int!(2)][int!(0)]);
+    assert_eq!(Value::Str(String::from("hello!")), index_two_zero.eval(&mut state).unwrap());
+
+    let index_two_one = index!(array[int!(2)][int!(1)]);
+    assert_eq!(Err(ErrorType::ArrayIndexOutOfBounds), index_two_one.eval(&mut state).map_err(|e| e.err_type()));
+
+    let index_three = index!(array[int!(3)]);
+    assert_eq!(Err(ErrorType::ArrayIndexOutOfBounds), index_three.eval(&mut state).map_err(|e| e.err_type()));
 }
 
 #[test]

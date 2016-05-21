@@ -40,6 +40,10 @@ macro_rules! stmt_defun {
         (Statement::Defun($ty, stringify_from!($name), vec![$(stringify_from!($param)),*], vec![$($stmt),*]))
 }
 
+macro_rules! stmt_for {
+    ($var:ident <- $arr:expr, { $($stmt:expr);* }) => (Statement::For(stringify_from!($var), $arr, vec![$($stmt),*]))
+}
+
 macro_rules! stmt_if {
     // if (cond) { ... }
     (($clause:expr) { $($stmt:expr);* }) => (Statement::If($clause, vec![$($stmt),*], Vec::new()));
@@ -66,6 +70,10 @@ macro_rules! stmt_if {
 
 macro_rules! stmt_let {
     ($var:ident, $exp:expr) => (Statement::Let(stringify_from!($var), $exp))
+}
+
+macro_rules! stmt_print_line {
+    ($exp:expr) => (Statement::PrintLine($exp))
 }
 
 macro_rules! stmt_var_assign {

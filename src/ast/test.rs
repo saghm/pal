@@ -36,6 +36,34 @@ fn display_bool_expr() {
 }
 
 #[test]
+fn display_array() {
+    let exp = array![int!(-12), boolean!(false), array![var!(y)]];
+
+    assert_eq!("[-12, false, [y]]", format!("{}", exp));
+}
+
+#[test]
+fn display_for() {
+    let stmt = stmt_for!(x <- call!(step(int!(0), var!(y), int!(2))), {
+        stmt_print_line!(var!(x))
+    });
+
+    let string = "for x in step(0, y, 2) {\n    print_line x;\n}\n";
+    assert_eq!(string, format!("{}", stmt));
+}
+
+#[test]
+fn display_while() {
+    let stmt = stmt_while!(bin_exp!(var!(x), GreaterThan, int!(0)), {
+        stmt_print_line!(bin_exp!(var!(x), Times, var!(x)))
+    });
+
+    let string = "while (x > 0) {\n    print_line x * x;\n}\n";
+    assert_eq!(string, format!("{}", stmt));
+}
+
+
+#[test]
 fn display_complex_function() {
     let stmt = stmt_defun!(Type::Void, range(i) {
         stmt_while!(bin_exp!(var!(i), GreaterOrEqual, int!(0)), {
@@ -46,11 +74,4 @@ fn display_complex_function() {
 
     let string = "void range(i) {\n    while (i >= 0) {\n        total = total + sum3(i, i + 1, i + 2);\n        i = i - 1;\n    }\n}\n";
     assert_eq!(string, format!("{}", stmt));
-}
-
-#[test]
-fn display_array() {
-    let exp = array![int!(-12), boolean!(false), array![var!(y)]];
-
-    assert_eq!("[-12, false, [y]]", format!("{}", exp));
 }

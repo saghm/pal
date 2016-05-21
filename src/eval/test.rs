@@ -135,6 +135,18 @@ fn letters_string() {
     assert_eq!(array2, length2.eval(&mut state).unwrap());
 }
 
+#[test]
+fn letters_invalid_arg() {
+    let array_letters = letters!(array![string!("hello!")]);
+    let bool_letters = letters!(boolean!(false));
+    let int_letters = letters!(bin_exp!(int!(10), Divide, int!(3)));
+
+    let mut state = State::new();
+
+    assert_eq!(Err(ErrorType::Type), array_letters.eval(&mut state).map_err(|e| e.err_type()));
+    assert_eq!(Err(ErrorType::Type), bool_letters.eval(&mut state).map_err(|e| e.err_type()));
+    assert_eq!(Err(ErrorType::Type), int_letters.eval(&mut state).map_err(|e| e.err_type()));
+}
 
 #[test]
 fn if_true() {

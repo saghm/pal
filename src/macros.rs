@@ -4,6 +4,16 @@ macro_rules! stringify_from {
     ($id:ident) => (String::from(stringify!($id)))
 }
 
+// Values -----------------------------------------------------------------------------------------
+macro_rules! val_array {
+    ($($val:expr),*) => (Value::Array(vec![$($val),*]))
+}
+
+
+macro_rules! val_string {
+    ($string:expr) => (Value::Str(String::from($string)))
+}
+
 // Expressions ------------------------------------------------------------------------------------
 macro_rules! array {
     ($($exp:expr),*) => (Expr::Array(vec![$($exp),*]))
@@ -33,12 +43,17 @@ macro_rules! length {
     ($exp:expr) => (Expr::Length(Box::new($exp)))
 }
 
+macro_rules! letters {
+    ($exp:expr) => (Expr::Letters(Box::new($exp)))
+}
+
+
 macro_rules! not {
     ($exp:expr) => (Expr::Not(Box::new($exp)))
 }
 
 macro_rules! string {
-    ($string:expr) => (Expr::Value(Value::Str(String::from($string))))
+    ($string:expr) => (Expr::Value(val_string!($string)))
 }
 
 macro_rules! var {

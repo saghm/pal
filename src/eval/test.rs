@@ -116,6 +116,27 @@ fn length_invalid_arg() {
 }
 
 #[test]
+fn letters_string() {
+    let length1 = letters!(string!(""));
+    let length2 = letters!(string!("hello!"));
+
+    let array1 = val_array![];
+    let array2 = val_array![ val_string!("h")
+                           , val_string!("e")
+                           , val_string!("l")
+                           , val_string!("l")
+                           , val_string!("o")
+                           , val_string!("!")
+                           ];
+
+    let mut state = State::new();
+
+    assert_eq!(array1, length1.eval(&mut state).unwrap());
+    assert_eq!(array2, length2.eval(&mut state).unwrap());
+}
+
+
+#[test]
 fn if_true() {
     /*
      * let x = true;

@@ -192,6 +192,73 @@ fn range_invalid_args() {
 }
 
 #[test]
+fn step_up() {
+    let step = step_exp!(int!(0), int!(6), int!(2));
+    let array = val_array![val_int!(0), val_int!(2), val_int!(4), val_int!(6)];
+
+    let mut state = State::new();
+
+    assert_eq!(array, step.eval(&mut state).unwrap());
+}
+
+#[test]
+fn step_down() {
+    let step = step_exp!(int!(6), int!(0), int!(-2));
+    let array = val_array![val_int!(6), val_int!(4), val_int!(2), val_int!(0)];
+
+    let mut state = State::new();
+
+    assert_eq!(array, step.eval(&mut state).unwrap());
+}
+
+#[test]
+fn step_down_miss() {
+    let step = step_exp!(int!(5), int!(0), int!(-2));
+    let array = val_array![val_int!(5), val_int!(3), val_int!(1)];
+
+    let mut state = State::new();
+
+    assert_eq!(array, step.eval(&mut state).unwrap());
+}
+
+#[test]
+fn step_up_miss() {
+    let step = step_exp!(int!(0), int!(5), int!(2));
+    let array = val_array![val_int!(0), val_int!(2), val_int!(4)];
+
+    let mut state = State::new();
+
+    assert_eq!(array, step.eval(&mut state).unwrap());
+}
+
+#[test]
+fn step_invalid_decrement() {
+    let step = step_exp!(int!(0), int!(5), int!(-2));
+
+    let mut state = State::new();
+
+    assert_eq!(Err(ErrorType::Step), step.eval(&mut state).map_err(|e| e.err_type()));
+}
+
+#[test]
+fn step_invalid_increment() {
+    let step = step_exp!(int!(5), int!(0), int!(2));
+
+    let mut state = State::new();
+
+    assert_eq!(Err(ErrorType::Step), step.eval(&mut state).map_err(|e| e.err_type()));
+}
+
+#[test]
+fn step_zero_increment() {
+    let step = step_exp!(int!(5), int!(0), int!(0));
+
+    let mut state = State::new();
+
+    assert_eq!(Err(ErrorType::Step), step.eval(&mut state).map_err(|e| e.err_type()));
+}
+
+#[test]
 fn if_true() {
     /*
      * let x = true;

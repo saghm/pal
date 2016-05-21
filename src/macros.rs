@@ -58,6 +58,10 @@ macro_rules! range {
     ($start:expr, $end:expr) => (Expr::Range(Box::new($start), Box::new($end)))
 }
 
+macro_rules! step_exp {
+    ($start:expr, $end:expr, $step:expr) => (Expr::Step(Box::new($start), Box::new($end), Box::new($step)))
+}
+
 macro_rules! string {
     ($string:expr) => (Expr::Value(val_string!($string)))
 }

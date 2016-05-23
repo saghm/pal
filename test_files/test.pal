@@ -3,7 +3,12 @@ int sum3(x, y, z) {
 }
 
 void print_sums(n) {
-    for i in range(n, 0) {
+   let a = range(n, 0);
+   print "Printing ";
+   print length(a);
+   print_line " sums:";
+
+    for i in a {
         print_line sum3(i, i + 1, i + 2);
     }
 }

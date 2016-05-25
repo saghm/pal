@@ -79,6 +79,78 @@ impl Statement {
                 array_vec[index_int as usize] = exp_val;
                 state.assign(var, Value::Array(array_vec)).map(|_| None)
             }
+            Statement::Delete(ref var, ref index, ref indexes) => {
+                let mut array_vec = match state.lookup(var) {
+                    Some(&Value::Array(ref vec)) => vec.clone(),
+                    Some(ref val) => return Error::type_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense", var, val.type_string_with_article(), self)),
+                    None => return Error::undef_var_error(
+                        &format!("The variable `{}` is not defined, so {} doesn't make sense", var, self)),
+                };
+
+                let index_val = try!(index.eval(state));
+                let mut index_int = match index_val {
+                    Value::Int(i) => i,
+                    _ => return Error::type_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense", var, index_val.type_string_with_article(), self))
+                };
+
+                if index_int < 0 {
+                    return Error::array_index_out_of_bounds_error(
+                        &format!("`{}` is {}, so `{}` doesn't make sense",
+                        index, index_int, self))
+                }
+
+                if index_int as usize >= array_vec.len() {
+                    return Error::array_index_out_of_bounds_error(
+                        &format!("`{}` has {} elements in it, so `{}` doesn't make sense",
+                        var, array_vec.len(), self))
+                }
+
+                let mut repr = format!("{}[{}]", var, index);
+                let mut curr = &mut array_vec as *mut Vec<Value>;
+
+                for idx in indexes {
+                    repr.push_str(&format!("[{}]", idx));
+
+                    unsafe {
+                        curr = match (*curr)[index_int as usize] {
+                            Value::Array(ref mut vec) => vec as *mut Vec<Value>,
+                            ref val => return Error::type_error(
+                                &format!("`{}` is {}, so `{}` doesn't make sense", repr, val.type_string_with_article(), self)),
+                        };
+                    }
+
+                    let index_val = try!(idx.eval(state));
+
+                    index_int = match index_val {
+                        Value::Int(i) => i,
+                        _ => return Error::type_error(
+                            &format!("`{}` is {}, so `{}` doesn't make sense", var, index_val.type_string_with_article(), self))
+                    };
+
+                    if index_int < 0 {
+                        return Error::array_index_out_of_bounds_error(
+                            &format!("`{}` is {}, so `{}` doesn't make sense",
+                            index, index_int, self))
+                    }
+
+                    let curr_len = unsafe { (*curr).len() };
+
+                    if index_int as usize >= curr_len {
+                        return Error::array_index_out_of_bounds_error(
+                            &format!("`{}` has {} elements in it, so `{}` doesn't make sense",
+                            var, array_vec.len(), self))
+                    }
+
+                }
+
+                unsafe {
+                    (*curr).remove(index_int as usize);
+                }
+                try!(state.assign(var, Value::Array(array_vec)));
+                Ok(None)
+            }
             Statement::Defun(ref t, ref name, ref params, ref body) =>
                 state.define_func(t, name, params, body).map(|_| None),
             Statement::For(ref var, ref exp, ref block) => {

@@ -36,6 +36,7 @@ pub Stmt: Statement = {
 
 SimpleStmt: Statement = {
     <arr_elem:ArrayElem> "=" <e:Exp> ";" => Statement::ArrayElemAssign(arr_elem.0, arr_elem.1, arr_elem.2, e),
+    "delete" <ArrayElem> ";" => Statement::Delete(<>.0, <>.1, <>.2),
     "let" <Ident> "=" <Exp> ";" => Statement::Let(<>),
     "print" <Exp> ";" => Statement::Print(<>),
     "print_line" <Exp> ";" => Statement::PrintLine(<>),
@@ -162,6 +163,7 @@ extern {
         "if" => Token::If,
         "else" => Token::Else,
         "in" => Token::In,
+        "delete" => Token::Delete,
         "length" => Token::Length,
         "let" => Token::Let,
         "letters" => Token::Letters,

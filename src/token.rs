@@ -28,6 +28,7 @@ pub enum Token<'input> {
     Ident(&'input str),
 
     // Keywords
+    Delete,
     Else,
     For,
     If,
@@ -265,6 +266,7 @@ impl <'input> Tokenizer<'input> {
         let (start, word, end) = self.word(idx0);
 
         match word {
+            "delete" => (start, Delete, end),
             "else" => (start, Else, end),
             "for" => (start, For, end),
             "if" => (start, If, end),

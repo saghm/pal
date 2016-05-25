@@ -265,6 +265,7 @@ pub enum Statement {
     ArrayElemAssign(String, Expr, Vec<Expr>, Expr),
     For(String, Expr, Vec<Statement>),
     Defun(Type, String, Vec<String>, Vec<Statement>),
+    Delete(String, Expr, Vec<Expr>),
     If(Expr, Vec<Statement>, Vec<Statement>),
     Let(String, Expr),
     Print(Expr),
@@ -311,6 +312,15 @@ impl Statement {
                 }
 
                 writeln!(fmt, "{}}}", indentation)
+            }
+            Statement::Delete(ref var, ref index, ref indexes) => {
+                try!(write!(fmt, "{}delete {}[{}]", indentation, var, index));
+
+                for i in indexes.iter() {
+                    try!(write!(fmt, "[{}]", i));
+                }
+
+                Ok(())
             }
             Statement::For(ref var, ref exp, ref block) => {
                 try!(writeln!(fmt, "{}for {} in {} {{", indentation, var, exp));

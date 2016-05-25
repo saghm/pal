@@ -96,6 +96,7 @@ InEqOp: BinOp = {
 
 AddExp = BinExp<AddOp, MulExp>;
 AddOp: BinOp = {
+    "+" "+" => BinOp::Concat,
     "+" => BinOp::Plus,
     "-" => BinOp::Minus,
 };

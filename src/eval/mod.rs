@@ -249,6 +249,16 @@ impl Expr {
                     BinOp::Times => arith_exp(self, val1, val2, |x, y| x * y),
                     BinOp::Divide => arith_exp(self, val1, val2, |x, y| x / y),
                     BinOp::Modulus => arith_exp(self, val1, val2, |x, y| x % y),
+                    BinOp::Concat => match (val1, val2) {
+                        (Value::Array(mut v1), Value::Array(v2)) => {
+                            v1.extend(v2);
+                            Ok(Value::Array(v1))
+                        }
+                        (Value::Array(_), v2) => Error::type_error(
+                            &format!("`{}` is not an array, so `{}` is invalid", v2, self)),
+                        (v1, _) => Error::type_error(
+                            &format!("`{}` is not an array, so `{}` is invalid", v1, self)),
+                    },
                 }
             }
             Expr::Call(ref name, ref args) => {

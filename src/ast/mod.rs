@@ -112,6 +112,9 @@ pub enum BinOp {
     Times,
     Divide,
     Modulus,
+
+    // Other
+    Concat,
 }
 
 impl BinOp {
@@ -123,7 +126,7 @@ impl BinOp {
             BinOp::Equal | BinOp::NotEqual => Precedence::Equality,
             BinOp::GreaterOrEqual | BinOp::GreaterThan | BinOp::LessOrEqual | BinOp::LessThan =>
                 Precedence::Inequality,
-            BinOp::Plus | BinOp::Minus => Precedence::Addition,
+            BinOp::Plus | BinOp::Minus | BinOp::Concat => Precedence::Addition,
             BinOp::Times | BinOp::Divide | BinOp::Modulus => Precedence::Multiplication,
         }
     }
@@ -157,6 +160,7 @@ impl fmt::Display for BinOp {
             BinOp::Times => write!(fmt, "*"),
             BinOp::Divide => write!(fmt, "/"),
             BinOp::Modulus => write!(fmt, "%"),
+            BinOp::Concat => write!(fmt, "++"),
         }
     }
 }

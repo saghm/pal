@@ -77,6 +77,10 @@ macro_rules! stmt_defun {
         (Statement::Defun($ty, stringify_from!($name), vec![$(stringify_from!($param)),*], vec![$($stmt),*]))
 }
 
+macro_rules! stmt_delete {
+    ($var:ident[$index1:expr]$([$index2:expr])*) => (Statement::Delete(stringify_from!($var), $index1, vec![$($index2),*]));
+}
+
 macro_rules! stmt_for {
     ($var:ident <- $arr:expr, { $($stmt:expr);* }) => (Statement::For(stringify_from!($var), $arr, vec![$($stmt),*]))
 }

@@ -630,3 +630,16 @@ fn complex() {
     assert_eq!(1, state.len());
     assert_eq!(Value::Int(198), *state.lookup("total").unwrap());
 }
+
+#[test]
+fn array_delete_first() {
+    let stmt1 = stmt_let!(x, array!(int!(1), int!(2), int!(3)));
+    let stmt2 = stmt_delete!(x[int!(0)]);
+
+    let mut state = State::new();
+    stmt1.eval(&mut state).unwrap();
+    stmt2.eval(&mut state).unwrap();
+
+    assert_eq!(1, state.len());
+    assert_eq!(Value::Array(vec![val_int!(2), val_int!(3)]), *state.lookup("x").unwrap());
+}

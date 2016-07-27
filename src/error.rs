@@ -20,6 +20,8 @@ impl Error {
         Error { err: t, message: String::from(s) }
     }
 
+    #[inline]
+    #[allow(dead_code)]
     pub fn err_type(&self) -> ErrorType {
         self.err.clone()
     }

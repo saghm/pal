@@ -18,23 +18,30 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
 
+use error::Result;
 use parser::{parse_program, parse_stmt};
 use state::State;
 
 use rl_sys::readline;
 use rl_sys::history::{histfile, listmgmt};
 
-pub fn run_file(file_name: &str) {
+pub fn run_file(file_name: &str) -> Result<()> {
     let mut file = File::open(file_name).expect("Unable to open file");
     let mut program_str = String::new();
 
     file.read_to_string(&mut program_str).expect("Unable to read file");
+    run_program(&program_str)
+}
+
+pub fn run_program(program_str: &str) -> Result<()> {
     let program = parse_program(&program_str).unwrap();
     let mut state = State::new();
 
     for stmt in program {
-        stmt.eval(&mut state).unwrap();
+        try!(stmt.eval(&mut state));
     }
+
+    Ok(())
 }
 
 pub fn repl() {

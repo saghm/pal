@@ -9,7 +9,7 @@ fn main() {
     let _ = args.next();
 
     match args.next() {
-        Some(arg) => run_file(&arg),
+        Some(arg) => run_file(&arg).unwrap(),
         None => repl(),
     }
 }

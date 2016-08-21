@@ -6,10 +6,10 @@ license = "MIT"
 build = "build.rs"
 
 [build-dependencies]
-lalrpop = "0.11"
+lalrpop = "0.12"
 
 [dependencies]
-lalrpop-util = "0.11"
+lalrpop-util = "0.12"
 rl-sys = "0.5"
 stepper = "0.1"
 unicode-xid = "0.0.3"

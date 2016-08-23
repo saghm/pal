@@ -21,10 +21,6 @@ impl Stream {
         self.condvar.notify_one();
     }
 
-    pub fn is_finished(&self) -> bool {
-        self.state.lock().unwrap().finished
-    }
-
     pub fn write(&self, s: &str) {
         let mut state = self.state.lock().unwrap();
 
@@ -32,13 +28,14 @@ impl Stream {
         self.condvar.notify_one();
     }
 
-    pub fn read(&self) -> String {
+    pub fn read(&self) -> (String, bool) {
         let mut state = self.state.lock().unwrap();
+
         state = self.condvar.wait(state).unwrap();
 
         let temp = state.buffer.clone();
         state.buffer.clear();
 
-        temp
+        (temp, state.finished)
     }
 }

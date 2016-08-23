@@ -2,12 +2,14 @@ mod function;
 mod scope;
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use self::function::Function;
 use self::scope::Scope;
 
 use ast::{Expr, Statement, Type, Value};
 use error::{Error, Result};
+use stream::Stream;
 
 pub struct State {
     // The global scope
@@ -42,7 +44,7 @@ impl State {
     }
 
     // Evaluates a function given its name and arguments.
-    pub fn call_function(&mut self, name: &str, args: &[Expr]) -> Result<Option<Value>> {
+    pub fn call_function(&mut self, name: &str, args: &[Expr], stream: Option<Arc<Stream>>) -> Result<Option<Value>> {
         macro_rules! try_or_exit_scope {
             ($e:expr, $state:expr) => { match $e {
                 Ok(t) => t,
@@ -71,7 +73,7 @@ impl State {
 
         // Evaluate the arguments
         for arg in args.iter() {
-            arg_values.push(try!(arg.eval(self)));
+            arg_values.push(try!(arg.eval(self, stream.clone())));
         }
 
         self.enter_scope();
@@ -84,7 +86,7 @@ impl State {
         // Evaluate the function body
         for stmt in &body {
             // Check if the function has returned
-            if let Some(val) = try_or_exit_scope!(stmt.eval(self), self) {
+            if let Some(val) = try_or_exit_scope!(stmt.eval(self, stream.clone()), self) {
                 self.exit_scope();
 
                 // Verify that the returned value matches the return type of the function

@@ -4,16 +4,18 @@ mod test;
 mod bin_exp;
 
 use std::io::{self, Write};
+use std::sync::Arc;
 
 use ast::{BinOp, Expr, Statement, Value};
 use self::bin_exp::{arith_exp, bool_exp, eq_exp, ineq_exp};
 use error::{Error, Result};
 use state::State;
+use stream::Stream;
 
 use stepper::Stepper;
 
 impl Statement {
-    pub fn eval(&self, state: &mut State) -> Result<Option<Value>> {
+    pub fn eval(&self, state: &mut State, stream_opt: Option<Arc<Stream>>) -> Result<Option<Value>> {
         match *self {
             Statement::ArrayElemAssign(ref var, ref index, ref indexes, ref exp) => {
                 let mut array_vec = match state.lookup(var) {
@@ -24,7 +26,7 @@ impl Statement {
                         &format!("The variable `{}` is not defined, so {} doesn't make sense", var, self)),
                 };
 
-                let index_val = try!(index.eval(state));
+                let index_val = try!(index.eval(state, stream_opt.clone()));
                 let mut index_int = match index_val {
                     Value::Int(i) => i,
                     _ => return Error::type_error(
@@ -54,7 +56,7 @@ impl Statement {
                             &format!("`{}` is {}, so `{}` doesn't make sense", repr, val.type_string_with_article(), self)),
                     };
 
-                    let index_val = try!(idx.eval(state));
+                    let index_val = try!(idx.eval(state, stream_opt.clone()));
 
                     index_int = match index_val {
                         Value::Int(i) => i,
@@ -75,7 +77,7 @@ impl Statement {
                     }
                 }
 
-                let exp_val = try!(exp.eval(state));
+                let exp_val = try!(exp.eval(state, stream_opt));
                 array_vec[index_int as usize] = exp_val;
                 state.assign(var, Value::Array(array_vec)).map(|_| None)
             }
@@ -88,7 +90,7 @@ impl Statement {
                         &format!("The variable `{}` is not defined, so {} doesn't make sense", var, self)),
                 };
 
-                let index_val = try!(index.eval(state));
+                let index_val = try!(index.eval(state, stream_opt.clone()));
                 let mut index_int = match index_val {
                     Value::Int(i) => i,
                     _ => return Error::type_error(
@@ -121,7 +123,7 @@ impl Statement {
                         };
                     }
 
-                    let index_val = try!(idx.eval(state));
+                    let index_val = try!(idx.eval(state, stream_opt.clone()));
 
                     index_int = match index_val {
                         Value::Int(i) => i,
@@ -154,7 +156,7 @@ impl Statement {
             Statement::Defun(ref t, ref name, ref params, ref body) =>
                 state.define_func(t, name, params, body).map(|_| None),
             Statement::For(ref var, ref exp, ref block) => {
-                let val = try!(exp.eval(state));
+                let val = try!(exp.eval(state, stream_opt.clone()));
                 let vec = match val {
                     Value::Array(vec) => vec,
                     _ => return Error::type_error(
@@ -165,14 +167,14 @@ impl Statement {
                     state.define_var(var, array_val);
 
                     for stmt in block {
-                        try!(stmt.eval(state));
+                        try!(stmt.eval(state, stream_opt.clone()));
                     }
                 }
 
                 Ok(None)
             }
             Statement::If(ref exp, ref block1, ref block2) => {
-                let val = try!(exp.eval(state));
+                let val = try!(exp.eval(state, stream_opt.clone()));
                 let block = match val {
                     Value::Bool(true) => block1,
                     Value::Bool(false) => block2,
@@ -181,7 +183,7 @@ impl Statement {
                 };
 
                 for stmt in block.iter() {
-                    if let v @ Some(_) = try!(stmt.eval(state)) {
+                    if let v @ Some(_) = try!(stmt.eval(state, stream_opt.clone())) {
                         return Ok(v);
                     }
                 }
@@ -189,29 +191,42 @@ impl Statement {
                 Ok(None)
             }
             Statement::Let(ref var, ref exp) => {
-                let val = try!(exp.eval(state));
+                let val = try!(exp.eval(state, stream_opt));
                 state.define_var(var, val);
                 Ok(None)
             }
-            Statement::Print(ref exp) => {
-                print!("{}", try!(exp.eval(state)));
-                io::stdout().flush().unwrap();
-                Ok(None)
-            }
-            Statement::PrintLine(ref exp) => {
-                println!("{}", try!(exp.eval(state)));
-                Ok(None)
-            }
-            Statement::Return(ref exp) => exp.eval(state).map(Some),
+            Statement::Print(ref exp) => match stream_opt.clone() {
+                Some(stream) => {
+                    stream.write(&format!("{}", try!(exp.eval(state, stream_opt))));
+                    Ok(None)
+                }
+                None => {
+                    print!("{}", try!(exp.eval(state, stream_opt)));
+                    io::stdout().flush().unwrap();
+                    Ok(None)
+                }
+            },
+            Statement::PrintLine(ref exp) => match stream_opt.clone() {
+                Some(stream) => {
+                    stream.write(&format!("{}\n", try!(exp.eval(state, stream_opt))));
+                    Ok(None)
+                }
+                None => {
+                    println!("{}", try!(exp.eval(state, stream_opt)));
+                    io::stdout().flush().unwrap();
+                    Ok(None)
+                }
+            },
+            Statement::Return(ref exp) => exp.eval(state, stream_opt).map(Some),
             Statement::VarAssign(ref var, ref exp) => {
-                let val = try!(exp.eval(state));
+                let val = try!(exp.eval(state, stream_opt));
                 state.assign(var, val).map(|_| None)
             }
-            Statement::VoidCall(ref name, ref args) => state.call_function(name, args).map(|_| None),
+            Statement::VoidCall(ref name, ref args) => state.call_function(name, args, stream_opt).map(|_| None),
             Statement::While(ref exp, ref block) => {
 
                 loop {
-                    let val = try!(exp.eval(state));
+                    let val = try!(exp.eval(state, stream_opt.clone()));
 
                     match val {
                         Value::Bool(true) => (),
@@ -221,7 +236,7 @@ impl Statement {
                     };
 
                     for stmt in block.iter() {
-                        if let v @ Some(_) = try!(stmt.eval(state)) {
+                        if let v @ Some(_) = try!(stmt.eval(state, stream_opt.clone())) {
                             return Ok(v);
                         }
                     }
@@ -232,13 +247,13 @@ impl Statement {
 }
 
 impl Expr {
-    pub fn eval(&self, state: &mut State) -> Result<Value> {
+    pub fn eval(&self, state: &mut State, stream_opt: Option<Arc<Stream>>) -> Result<Value> {
         match *self {
             Expr::Array(ref vec) => {
                 let mut out = Vec::new();
 
                 for ref exp in vec {
-                    out.push(try!(exp.eval(state)));
+                    out.push(try!(exp.eval(state, stream_opt.clone())));
                 }
 
                 Ok(Value::Array(out))
@@ -252,7 +267,7 @@ impl Expr {
                         &format!("The variable `{}` is not defined, so {} doesn't make sense", var, self)),
                 };
 
-                let index_val = try!(index.eval(state));
+                let index_val = try!(index.eval(state, stream_opt.clone()));
                 let mut index_int = match index_val {
                     Value::Int(i) => i,
                     _ => return Error::type_error(
@@ -282,7 +297,7 @@ impl Expr {
                             &format!("`{}` is {}, so `{}` doesn't make sense", repr, val.type_string_with_article(), self)),
                     };
 
-                    let index_val = try!(idx.eval(state));
+                    let index_val = try!(idx.eval(state, stream_opt.clone()));
 
                     index_int = match index_val {
                         Value::Int(i) => i,
@@ -306,8 +321,8 @@ impl Expr {
                 Ok(array_vec[index_int as usize].clone())
             }
             Expr::BinExp(ref exp1, ref op, ref exp2) => {
-                let val1 = try!(exp1.eval(state));
-                let val2 = try!(exp2.eval(state));
+                let val1 = try!(exp1.eval(state, stream_opt.clone()));
+                let val2 = try!(exp2.eval(state, stream_opt));
 
                 match *op {
                     BinOp::And => bool_exp(self, val1, val2, |x, y| x && y),
@@ -336,7 +351,7 @@ impl Expr {
                 }
             }
             Expr::Call(ref name, ref args) => {
-                match state.call_function(name, args) {
+                match state.call_function(name, args, stream_opt) {
                     Ok(Some(val)) => Ok(val),
                     Ok(None) => Error::type_error(
                         &format!("The function {} doesn't return anything, so {} doesn't make sense", name, self)),
@@ -344,7 +359,7 @@ impl Expr {
                 }
             }
             Expr::Length(ref exp) => {
-                let val = try!(exp.eval(state));
+                let val = try!(exp.eval(state, stream_opt));
 
                 match val {
                     Value::Array(ref vec) => Ok(Value::Int(vec.len() as i64)),
@@ -354,7 +369,7 @@ impl Expr {
                 }
             }
             Expr::Letters(ref exp) => {
-                let val = try!(exp.eval(state));
+                let val = try!(exp.eval(state, stream_opt));
 
                 match val {
                     Value::Str(ref string) => Ok(Value::Array(string.chars().map(|c| Value::Str(format!("{}", c))).collect())),
@@ -363,20 +378,20 @@ impl Expr {
                 }
             }
             Expr::Not(ref exp) => {
-                match try!(exp.eval(state)) {
+                match try!(exp.eval(state, stream_opt)) {
                     Value::Bool(b) => Ok(Value::Bool(!b)),
                     _ => Error::type_error(
                         &format!("`{}` is not a boolean, so `!{}` doesn't make sense", exp, exp)),
                 }
             }
             Expr::Range(ref start, ref end) => {
-                let start_int = match try!(start.eval(state)) {
+                let start_int = match try!(start.eval(state, stream_opt.clone())) {
                     Value::Int(i) => i,
                     _ => return Error::type_error(
                         &format!("`{}` is not a int, so `{}` doesn't make sense", start, self)),
                 };
 
-                let end_int = match try!(end.eval(state)) {
+                let end_int = match try!(end.eval(state, stream_opt)) {
                     Value::Int(i) => i,
                     _ => return Error::type_error(
                         &format!("`{}` is not a int, so `{}` doesn't make sense", end, self)),
@@ -393,19 +408,19 @@ impl Expr {
                 Ok(Value::Array(vec))
             }
             Expr::Step(ref start, ref end, ref step) => {
-                let start_int = match try!(start.eval(state)) {
+                let start_int = match try!(start.eval(state, stream_opt.clone())) {
                     Value::Int(i) => i,
                     _ => return Error::type_error(
                         &format!("`{}` is not a int, so `{}` doesn't make sense", start, self)),
                 };
 
-                let end_int = match try!(end.eval(state)) {
+                let end_int = match try!(end.eval(state, stream_opt.clone())) {
                     Value::Int(i) => i,
                     _ => return Error::type_error(
                         &format!("`{}` is not a int, so `{}` doesn't make sense", end, self)),
                 };
 
-                let step_int = match try!(step.eval(state)) {
+                let step_int = match try!(step.eval(state, stream_opt)) {
                     Value::Int(i) => i,
                     _ => return Error::type_error(
                         &format!("`{}` is not a int, so `{}` doesn't make sense", step, self)),

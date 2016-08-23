@@ -11,16 +11,21 @@ mod error;
 mod eval;
 mod grammar;
 mod parser;
+mod stream;
 mod token;
 mod state;
 
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
+use std::sync::Arc;
+use std::thread;
 
 use error::Result;
 use parser::{parse_program, parse_stmt};
 use state::State;
+
+pub use stream::Stream;
 
 use rl_sys::readline;
 use rl_sys::history::{histfile, listmgmt};
@@ -38,10 +43,28 @@ pub fn run_program(program_str: &str) -> Result<()> {
     let mut state = State::new();
 
     for stmt in program {
-        try!(stmt.eval(&mut state));
+        try!(stmt.eval(&mut state, None));
     }
 
     Ok(())
+}
+
+pub fn run_program_with_stream(program_str: &str) -> Arc<Stream> {
+    let program = parse_program(&program_str).unwrap();
+    let stream = Arc::new(Stream::new());
+    let cloned_stream = stream.clone();
+    let mut state = State::new();
+
+    thread::spawn(move || {
+        for stmt in program {
+            if let Err(e) = stmt.eval(&mut state, Some(cloned_stream.clone())) {
+                cloned_stream.write(&format!("{}", e));
+                break;
+            }
+        }
+    });
+
+    stream
 }
 
 pub fn repl() {
@@ -64,7 +87,7 @@ pub fn repl() {
         let _ = histfile::write(Some(Path::new(".history")));
 
         match parse_stmt(&input) {
-            Ok(stmt) => match stmt.eval(&mut state) {
+            Ok(stmt) => match stmt.eval(&mut state, None) {
                 Ok(_) => (),
                 Err(e) => writeln!(stderr, "{}", e).unwrap(),
             },

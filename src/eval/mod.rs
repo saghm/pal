@@ -209,21 +209,23 @@ impl Statement {
             }
             Statement::VoidCall(ref name, ref args) => state.call_function(name, args).map(|_| None),
             Statement::While(ref exp, ref block) => {
-                let val = try!(exp.eval(state));
-                match val {
-                    Value::Bool(true) => (),
-                    Value::Bool(false) => return Ok(None),
-                    _ => return Error::type_error(
-                        &format!("`{}` is {}, so `while ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp)),
-                };
 
-                for stmt in block.iter() {
-                    if let v @ Some(_) = try!(stmt.eval(state)) {
-                        return Ok(v);
+                loop {
+                    let val = try!(exp.eval(state));
+
+                    match val {
+                        Value::Bool(true) => (),
+                        Value::Bool(false) => return Ok(None),
+                        _ => return Error::type_error(
+                            &format!("`{}` is {}, so `while ({}) ...` doesn't make sense", exp, val.type_string_with_article(), exp)),
+                    };
+
+                    for stmt in block.iter() {
+                        if let v @ Some(_) = try!(stmt.eval(state)) {
+                            return Ok(v);
+                        }
                     }
                 }
-
-                self.eval(state)
             }
         }
     }

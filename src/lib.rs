@@ -62,6 +62,8 @@ pub fn run_program_with_stream(program_str: &str) -> Arc<Stream> {
                 break;
             }
         }
+
+        cloned_stream.finished();
     });
 
     stream

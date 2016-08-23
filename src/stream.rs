@@ -1,32 +1,43 @@
 use std::sync::{Mutex, Condvar};
 
+#[derive(Default)]
+struct StreamState {
+    buffer: String,
+    finished: bool,
+}
+
 pub struct Stream {
-    buffer: Mutex<String>,
+    state: Mutex<StreamState>,
     condvar: Condvar,
 }
 
 impl Stream {
     pub fn new() -> Self {
-        Stream { buffer: Mutex::new(String::new()), condvar: Condvar::new() }
+        Stream { state: Mutex::new(StreamState::default()), condvar: Condvar::new() }
     }
 
-    pub fn wait(&self) {
+    pub fn finished(&self) {
+        self.state.lock().unwrap().finished = true;
+        self.condvar.notify_one();
+    }
 
+    pub fn is_finished(&self) -> bool {
+        self.state.lock().unwrap().finished
     }
 
     pub fn write(&self, s: &str) {
-        let mut buf = self.buffer.lock().unwrap();
+        let mut state = self.state.lock().unwrap();
 
-        buf.push_str(s);
+        state.buffer.push_str(s);
         self.condvar.notify_one();
     }
 
     pub fn read(&self) -> String {
-        let mut buf = self.buffer.lock().unwrap();
-        buf = self.condvar.wait(buf).unwrap();
-        let temp = buf.clone();
+        let mut state = self.state.lock().unwrap();
+        state = self.condvar.wait(state).unwrap();
 
-        buf.clear();
+        let temp = state.buffer.clone();
+        state.buffer.clear();
 
         temp
     }

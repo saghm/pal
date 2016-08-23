@@ -10,6 +10,10 @@ impl Stream {
         Stream { buffer: Mutex::new(String::new()), condvar: Condvar::new() }
     }
 
+    pub fn wait(&self) {
+
+    }
+
     pub fn write(&self, s: &str) {
         let mut buf = self.buffer.lock().unwrap();
 
@@ -19,6 +23,7 @@ impl Stream {
 
     pub fn read(&self) -> String {
         let mut buf = self.buffer.lock().unwrap();
+        buf = self.condvar.wait(buf).unwrap();
         let temp = buf.clone();
 
         buf.clear();

@@ -407,6 +407,19 @@ impl Expr {
                 let vec: Vec<_> = step!(start_int => fixed_end; step_int).into_iter().map(Value::Int).collect();
                 Ok(Value::Array(vec))
             }
+            Expr::ReadLine => match stream_opt.clone() {
+                Some(stream) => Ok(Value::Str(stream.read_input())),
+                None => {
+                    let mut buf = String::new();
+                    io::stdin().read_line(&mut buf).unwrap();
+
+                    if let Some('\n') = buf.chars().last() {
+                        let _ = buf.pop();
+                    }
+
+                    Ok(Value::Str(buf))
+                }
+            },
             Expr::Step(ref start, ref end, ref step) => {
                 let start_int = match try!(start.eval(state, stream_opt.clone())) {
                     Value::Int(i) => i,

@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::sync::{Mutex, Condvar};
 
+#[derive(Debug)]
 pub enum Event {
     Error,
     Finished,
@@ -29,6 +30,18 @@ impl Stream {
 
         state.events.push_back(Event::Finished);
         self.condvar.notify_one();
+    }
+
+    pub fn read_input(&self) -> String {
+        let mut state = self.state.lock().unwrap();
+        state.events.push_back(Event::NeedsInput);
+        self.condvar.notify_one();
+        state = self.condvar.wait(state).unwrap();
+
+        let temp = state.buffer.clone();
+        state.buffer.clear();
+
+        temp
     }
 
     pub fn write_input(&self, s: &str) {

@@ -1,9 +1,17 @@
+use std::collections::VecDeque;
 use std::sync::{Mutex, Condvar};
+
+pub enum Event {
+    Error,
+    Finished,
+    NeedsInput,
+    Output(String),
+}
 
 #[derive(Default)]
 struct StreamState {
     buffer: String,
-    finished: bool,
+    events: VecDeque<Event>,
 }
 
 pub struct Stream {
@@ -17,25 +25,35 @@ impl Stream {
     }
 
     pub fn finished(&self) {
-        self.state.lock().unwrap().finished = true;
+        let mut state = self.state.lock().unwrap();
+
+        state.events.push_back(Event::Finished);
         self.condvar.notify_one();
     }
 
-    pub fn write(&self, s: &str) {
+    pub fn write_input(&self, s: &str) {
         let mut state = self.state.lock().unwrap();
 
-        state.buffer.push_str(s);
+        state.buffer = String::from(s);
         self.condvar.notify_one();
     }
 
-    pub fn read(&self) -> (String, bool) {
+    pub fn write_output(&self, s: &str) {
         let mut state = self.state.lock().unwrap();
+
+        state.events.push_back(Event::Output(String::from(s)));
+        self.condvar.notify_one();
+    }
+
+    pub fn get_event(&self) -> Option<Event> {
+        let mut state = self.state.lock().unwrap();
+        let event = state.events.pop_front();
+
+        if event.is_some() {
+            return event;
+        }
 
         state = self.condvar.wait(state).unwrap();
-
-        let temp = state.buffer.clone();
-        state.buffer.clear();
-
-        (temp, state.finished)
+        state.events.pop_front()
     }
 }

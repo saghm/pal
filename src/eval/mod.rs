@@ -197,7 +197,7 @@ impl Statement {
             }
             Statement::Print(ref exp) => match stream_opt.clone() {
                 Some(stream) => {
-                    stream.write(&format!("{}", try!(exp.eval(state, stream_opt))));
+                    stream.write_output(&format!("{}", try!(exp.eval(state, stream_opt))));
                     Ok(None)
                 }
                 None => {
@@ -208,7 +208,7 @@ impl Statement {
             },
             Statement::PrintLine(ref exp) => match stream_opt.clone() {
                 Some(stream) => {
-                    stream.write(&format!("{}\n", try!(exp.eval(state, stream_opt))));
+                    stream.write_output(&format!("{}\n", try!(exp.eval(state, stream_opt))));
                     Ok(None)
                 }
                 None => {

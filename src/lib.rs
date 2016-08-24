@@ -25,7 +25,7 @@ use error::Result;
 use parser::{parse_program, parse_stmt};
 use state::State;
 
-pub use stream::Stream;
+pub use stream::{Event, Stream};
 
 use rl_sys::readline;
 use rl_sys::history::{histfile, listmgmt};
@@ -58,7 +58,7 @@ pub fn run_program_with_stream(program_str: &str) -> Arc<Stream> {
     thread::spawn(move || {
         for stmt in program {
             if let Err(e) = stmt.eval(&mut state, Some(cloned_stream.clone())) {
-                cloned_stream.write(&format!("{}", e));
+                cloned_stream.write_output(&format!("{}", e));
                 break;
             }
         }
